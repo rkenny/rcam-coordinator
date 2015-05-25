@@ -28,10 +28,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return "/";
   }
   
-  public String testThis() {
-    return "if you see this, injection is working.";
-  }
-
+  
   public Iterator<Map.Entry<String, Integer>> getClientMapIterator() {
     return clientInfo.entrySet().iterator();
   }

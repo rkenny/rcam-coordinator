@@ -10,8 +10,6 @@ public interface IConfigurationProvider {
   int getHostPort();
 
   String getBaseUrl();
-  
-  String testThis();
 
   Iterator<Entry<String, Integer>> getClientMapIterator();
 
