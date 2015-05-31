@@ -32,11 +32,10 @@ public class ClientFactory implements IClientFactory {
     Iterator<Map.Entry<String, Integer>> clientIterator = configurationProvider.getClientMapIterator();
     while(clientIterator.hasNext()) {
       Map.Entry<String, Integer> pair = (Map.Entry<String, Integer>) clientIterator.next(); 
-      System.out.println(pair.getKey() + " " + pair.getValue());
-      Client newClient =new Client(pair.getKey(), pair.getValue()); 
+      Client newClient = new Client(pair.getKey(), pair.getValue()); 
       remoteClients.add(newClient);
       newClient.startClientThread();
-      clientIterator.remove();
+      //clientIterator.remove();
     }
   }
   

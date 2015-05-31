@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClientFactory;
+import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
 @Controller
 @Scope("request")
-public class RecordCommandController {
+public class CommandController {
   
   
   @Autowired
@@ -31,19 +32,17 @@ public class RecordCommandController {
   
   List<IClient> remoteClients;
   
-  @RequestMapping(name = "/record", method = RequestMethod.GET)
-  public @ResponseBody String beginRecordingGet() {
+  @RequestMapping(value= "/command/{commandString}", method = RequestMethod.POST)
+  public @ResponseBody String command(@PathVariable("commandString") String commandString) {
     remoteClients = clientFactory.getRemoteClients();
     Iterator<IClient> clientIterator = remoteClients.iterator();
     while(clientIterator.hasNext()) {
       IClient currentClient = clientIterator.next();
-      currentClient.record();
+      ICommand command = commandFactory.createCommand(commandString);
+      currentClient.addOutgoingCommand(command);
+  //    //clientIterator.remove();
     }
-    return "Recieved beginRecording post.";
-  }
-  
-  @RequestMapping(name = "/record/{duration}", method = RequestMethod.POST)
-  public @ResponseBody String beginRecording(@PathVariable("duration") Integer duration) {
-    return "Recieved beginRecording post. Duration: " + duration + " seconds";
+    
+    return "Recieved "+commandString+" post.";
   }
 }

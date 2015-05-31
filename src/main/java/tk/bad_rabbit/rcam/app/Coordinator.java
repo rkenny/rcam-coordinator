@@ -25,7 +25,7 @@ public class Coordinator {
     IConfigurationProvider configurationProvider = new ConfigurationProvider();
     
     
-    httpServer = prepareHttpServer(configurationProvider.getHostname(), configurationProvider.getHostPort());
+    httpServer = prepareHttpServer(configurationProvider.getHostname(), configurationProvider.getServerPort());
     context = prepareWebappContext(configurationProvider.getBaseUrl());
     
     runHttpSubsystem(httpServer, context);

@@ -1,68 +1,99 @@
 package tk.bad_rabbit.rcam.distributed_backend.commandfactory;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.CharBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.AckCommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.Command;
 import tk.bad_rabbit.rcam.distributed_backend.command.ErrorCommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
 @Service(value="commandFactory")
 public class CommandFactory implements ICommandFactory {
+
+    Map<String, List<String>> commandConfigurations;
+    Map<String, Map<String, String>> commandVariables;
+    Map<String, String> serverVariables;
+
+    @Autowired
+    @Qualifier(value="configurationProvider")
+    IConfigurationProvider configurationProvider;
     
-  public ICommand createCommand(CharBuffer commandCharBuffer) {
-    return createCommand(commandCharBuffer.toString());
-  }
-  
-  public ICommand createCommand(String commandString) {
-    ICommand command = null;
-    Class<?> commandClass;
-    System.out.println(commandString);
-    try {
-      if(commandString.contains("Record")) {
-        
-        commandClass = Class.forName("tk.bad_rabbit.rcam.distributed_backend.command." + commandString.trim() + "Command");
-        Constructor<?> commandConstructor = commandClass.getConstructor();
-        command = (ICommand) commandConstructor.newInstance();
-      }
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InstantiationException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (IllegalArgumentException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (NoSuchMethodException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (SecurityException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    public CommandFactory() {
     }
-        return command;
-  }
+    
+    @PostConstruct
+    private void initializeCommandFactory() {
+      this.commandConfigurations = configurationProvider.getCommandConfigurations();
+      this.commandVariables = configurationProvider.getCommandVariables();
+      this.serverVariables = configurationProvider.getServerVariables();
+    }
+    
+    public CommandFactory(Map<String, List<String>> commandConfigurations, Map<String,
+        Map<String, String>> commandVariables, Map<String, String> serverVariables) {
+      this.commandConfigurations = commandConfigurations;
+      this.commandVariables = commandVariables;
+      this.serverVariables = serverVariables;
+    }
+    
+    public ICommand createCommand(CharBuffer commandCharBuffer) {    
+      return createCommand(commandCharBuffer.toString());
+    }
+    
+    
+    public ICommand createCommand(String commandString) {
+      ICommand command = null;
+      
+      String commandType;
+      int commandTypeLength = commandString.indexOf("(") > 0 ? commandString.indexOf("(") : commandString.length();
+      commandType = commandString.substring(0, commandTypeLength).trim();
+      
+      if(commandConfigurations.containsKey(commandType)) {
+        command = new Command(commandType, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
+            commandVariables.get(commandType), serverVariables);
+      } else if(commandString.equals("Ack")) {
+        command = new AckCommand();
+      } else if(commandString.equals("Error")) {
+        command = new ErrorCommand();
+      } else {
+        // won't hit this yet
+        System.out.println("Won't instantiate that command [" +commandString+ "]");
+      }      
+      
+      return command;
+    }
 
-  public ICommand ackCommand() {
-    // TODO Auto-generated method stub
-    return new AckCommand();
-  }
-  
-  public ICommand errorCommand() {
-    return new ErrorCommand();
-  }
-
-}
+    private Map<String, String> createClientVariablesMap(String commandString) {
+      Map<String, String> clientVariables = new HashMap<String, String>();
+      int variablesSubstringStart = commandString.indexOf("(");
+      int variablesSubstringEnd = commandString.indexOf(")");
+      
+      if(variablesSubstringStart > 0 && variablesSubstringEnd > 0 && variablesSubstringEnd <= commandString.length()) {
+        String[] clientVariableArray;
+        if(commandString.indexOf(",") > 0) {
+          clientVariableArray = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd).split(",");
+        } else {
+          clientVariableArray = new String[1];
+          clientVariableArray[0] = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd);
+        }
+        
+        for(String clientVariable : clientVariableArray) {
+          if(clientVariable.indexOf("=") > 0) {
+            String[] variableAndValue = clientVariable.split("=");
+            clientVariables.put(variableAndValue[0], variableAndValue[1]);
+          }
+        }
+      }
+      
+      return clientVariables;
+    }   
+ }

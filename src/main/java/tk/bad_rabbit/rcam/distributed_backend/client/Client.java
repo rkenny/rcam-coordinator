@@ -27,6 +27,8 @@ import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
+import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
+import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
 
 @Component(value="client")
@@ -51,9 +53,11 @@ public class Client implements IClient {
   
   ICommandQueuer commandQueuer;
   
-  @Autowired
-  @Qualifier("commandFactory")
+  //@Autowired
+  //@Qualifier("commandFactory")
   ICommandFactory commandFactory;
+  
+  IConfigurationProvider configurationProvider;
   
   public Client(String remoteAddress, int remotePort) {
     this();
@@ -62,8 +66,10 @@ public class Client implements IClient {
   }
   
   public Client() {
+    configurationProvider = new ConfigurationProvider();
     this.commandQueuer = new CommandQueuer();
-    this.commandFactory = new CommandFactory();
+    this.commandFactory = new CommandFactory(this.configurationProvider.getCommandConfigurations(), 
+        this.configurationProvider.getCommandVariables(), this.configurationProvider.getServerVariables());
     this.asciiDecoder = Charset.forName("US-ASCII").newDecoder();
     this.asciiEncoder = Charset.forName("US-ASCII").newEncoder();
   }
@@ -73,10 +79,8 @@ public class Client implements IClient {
     this.clientThread.start();
   }
   
-  public void record() {
-    System.out.println("Is commandQueur null? " + (commandQueuer == null));
-    System.out.println("Is commandFactory null? " + (commandFactory == null));
-    commandQueuer.addOutgoingCommand(commandFactory.createCommand("Record"));
+  public void addOutgoingCommand(ICommand command) {
+    this.commandQueuer.addOutgoingCommand(command);
   }
   
   public void run() {
@@ -133,9 +137,9 @@ public class Client implements IClient {
           ICommand incomingCommand = commandFactory.createCommand(readFromChannel(selectedChannel));
           if(null != incomingCommand) {
             commandQueuer.addIncomingCommand(incomingCommand);
-            writeCommandToChannel(selectedChannel, commandFactory.ackCommand());  
+            writeCommandToChannel(selectedChannel, commandFactory.createCommand("Ack"));  
           } else {
-            //writeCommandToChannel(selectedChannel, commandFactory.errorCommand());  
+            writeCommandToChannel(selectedChannel, commandFactory.createCommand("Error"));  
           }
         }  catch(IOException ioException) {
           System.err.println("Error reading from a channel. Closing that channel.");
@@ -176,7 +180,7 @@ public class Client implements IClient {
   public CharBuffer readFromChannel(SocketChannel selectedChannel) throws IOException {
     CharBuffer returnedBuffer;
     ByteBuffer buffer = ByteBuffer.allocate(1024);
-  
+    
     selectedChannel.read(buffer);
     buffer.flip();
     
@@ -209,9 +213,6 @@ public class Client implements IClient {
   }
 
 
-  public void addOutgoingCommand(ICommand command) {
-    // TODO Auto-generated method stub
-    
-  }
+
    
 }

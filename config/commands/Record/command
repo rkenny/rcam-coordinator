@@ -1,0 +1,10 @@
+@vlcPath
+--run-fake-tty
+--run-time
+&duration
+localhost
+vlc://quit
+--sout
+#transcode{vcodec=h264,acodec=mp3,samplerate=22050,channels=1}:std{access=file,mux=ps,dst=$tempTest}
+$videoSource
+
