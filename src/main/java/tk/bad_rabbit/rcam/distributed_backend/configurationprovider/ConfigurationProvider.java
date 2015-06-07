@@ -31,6 +31,13 @@ public class ConfigurationProvider implements IConfigurationProvider {
     serverVariables = new HashMap<String, String>();
     readServerConfiguration();
     readCommandConfigurations();
+    
+    List<String> ackCommand = new ArrayList<String>();
+    ackCommand.add("&command[&ackNumber]");
+    commandConfigurations.put("Ack", ackCommand);
+    Map<String, String> ackCommandVariables = new HashMap<String, String>();
+    ackCommandVariables.put("ignored", "true");
+    commandVariables.put("Ack", ackCommandVariables);
   }
   
   private void readServerConfiguration() {

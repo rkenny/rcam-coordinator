@@ -4,4 +4,7 @@ import java.nio.CharBuffer;
 
 public interface ICommand {
   public CharBuffer asCharBuffer();
+  public Boolean isIgnored();
+  public Integer getAckNumber();
+  public String getCommandName();
 }

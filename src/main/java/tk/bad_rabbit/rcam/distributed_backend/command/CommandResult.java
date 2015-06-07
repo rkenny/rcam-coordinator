@@ -24,6 +24,14 @@ public class CommandResult implements ICommand {
   public String notificationCommand()  { 
     return success ? commandType + "(Success)" : commandType + "(Fail)";
   }
+  
+  public String getCommandName() {
+    return commandType;
+  }
+
+  public Integer getAckNumber() {
+    return null;
+  }
 
 
   public CommandResult call() throws Exception {
@@ -31,6 +39,9 @@ public class CommandResult implements ICommand {
     return null;
   }
 
+  public Boolean isIgnored() {
+    return false;
+  }
 
   public CharBuffer asCharBuffer() {
     // TODO Auto-generated method stub

@@ -4,6 +4,7 @@ import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.annotation.PostConstruct;
 
@@ -11,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.AckCommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Command;
-import tk.bad_rabbit.rcam.distributed_backend.command.ErrorCommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
@@ -23,6 +22,8 @@ public class CommandFactory implements ICommandFactory {
     Map<String, List<String>> commandConfigurations;
     Map<String, Map<String, String>> commandVariables;
     Map<String, String> serverVariables;
+    
+    Random rand;
 
     @Autowired
     @Qualifier(value="configurationProvider")
@@ -36,6 +37,7 @@ public class CommandFactory implements ICommandFactory {
       this.commandConfigurations = configurationProvider.getCommandConfigurations();
       this.commandVariables = configurationProvider.getCommandVariables();
       this.serverVariables = configurationProvider.getServerVariables();
+      rand = new Random();
     }
     
     public CommandFactory(Map<String, List<String>> commandConfigurations, Map<String,
@@ -44,30 +46,42 @@ public class CommandFactory implements ICommandFactory {
       this.commandVariables = commandVariables;
       this.serverVariables = serverVariables;
     }
+        
     
-    public ICommand createCommand(CharBuffer commandCharBuffer) {    
-      return createCommand(commandCharBuffer.toString());
+    public ICommand createAckCommand(ICommand command) {
+      return createCommand("Ack(command=" + command.getCommandName() + ",ackNumber="+command.getAckNumber()+")");
     }
     
+    public ICommand createCommand(CharBuffer commandBuffer) {
+      return createCommand(commandBuffer.toString());
+    }
     
     public ICommand createCommand(String commandString) {
       ICommand command = null;
-      
       String commandType;
-      int commandTypeLength = commandString.indexOf("(") > 0 ? commandString.indexOf("(") : commandString.length();
+      int commandTypeLength;
+      commandTypeLength = commandString.indexOf("(") > 0 ? commandString.indexOf("(") : commandString.length();
+      commandTypeLength = (commandString.indexOf("[") < commandTypeLength  
+          && commandString.indexOf("[") > 0 )? commandString.indexOf("[") : commandTypeLength;
       commandType = commandString.substring(0, commandTypeLength).trim();
       
-      if(commandConfigurations.containsKey(commandType)) {
-        command = new Command(commandType, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
-            commandVariables.get(commandType), serverVariables);
-      } else if(commandString.equals("Ack")) {
-        command = new AckCommand();
-      } else if(commandString.equals("Error")) {
-        command = new ErrorCommand();
+      
+      Integer commandAckNumber;
+      if(commandString.indexOf("[") > 0 && commandString.indexOf("[") < commandString.indexOf("(") ) {
+        commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
       } else {
+        commandAckNumber = new Random().nextInt((99999 - 10000) + 1) + 10000;
+      }
+      //Something => Something[12345] => Ack(Something[12345])
+      //Record(duration=200) => Record[123456](duration=200) => Ack(Record[123456])
+      
+      if(commandConfigurations.containsKey(commandType)) {
+        command = new Command(commandType, commandAckNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
+            commandVariables.get(commandType), serverVariables);
+      } 
         // won't hit this yet
-        System.out.println("Won't instantiate that command [" +commandString+ "]");
-      }      
+      //  System.out.println("Won't instantiate that command [" +commandString+ "]");
+            
       
       return command;
     }

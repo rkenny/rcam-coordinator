@@ -137,9 +137,11 @@ public class Client implements IClient {
           ICommand incomingCommand = commandFactory.createCommand(readFromChannel(selectedChannel));
           if(null != incomingCommand) {
             commandQueuer.addIncomingCommand(incomingCommand);
-            writeCommandToChannel(selectedChannel, commandFactory.createCommand("Ack"));  
+            if(!incomingCommand.isIgnored()) {
+              writeCommandToChannel(selectedChannel, commandFactory.createAckCommand(incomingCommand));                
+            }
           } else {
-            writeCommandToChannel(selectedChannel, commandFactory.createCommand("Error"));  
+            //writeCommandToChannel(selectedChannel, commandFactory.createErrorCommand(incomingCommand));  
           }
         }  catch(IOException ioException) {
           System.err.println("Error reading from a channel. Closing that channel.");
