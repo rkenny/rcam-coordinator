@@ -25,13 +25,18 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   
   public ConfigurationProvider() {
-    clientInfo = new HashMap<String, Integer>();
-    clientInfo.put("localhost", new Integer(12345));
+    //
+    //clientInfo.put("localhost", new Integer(12345));
+    readClientsConfiguration();
     
     serverVariables = new HashMap<String, String>();
     readServerConfiguration();
     readCommandConfigurations();
     
+    addAckCommand();
+  }
+  
+  private void addAckCommand() {
     List<String> ackCommand = new ArrayList<String>();
     ackCommand.add("&command[&ackNumber]");
     commandConfigurations.put("Ack", ackCommand);
@@ -39,6 +44,27 @@ public class ConfigurationProvider implements IConfigurationProvider {
     ackCommandVariables.put("ignored", "true");
     commandVariables.put("Ack", ackCommandVariables);
   }
+  
+  private void readClientsConfiguration() {
+    clientInfo = new HashMap<String, Integer>();
+    File clientsConfigFile = new File("config/clients.conf");
+    BufferedReader reader;
+    try {
+      reader = new BufferedReader(new FileReader(clientsConfigFile));
+      String configFileLine;
+      while((configFileLine = reader.readLine()) != null) {
+        parseClientConfigLine(configFileLine);
+      }  
+    } catch(FileNotFoundException e) {
+      System.out.println("File not found. Going with defaults");
+      clientInfo.put("127.0.0.1", 12345);
+    } catch(IOException e) {
+      System.out.println("Error setting server configuration. Going with the defaults.");
+      clientInfo.put("127.0.0.1", 12345);
+    }
+  }
+  
+  
   
   private void readServerConfiguration() {
     //serverPort = 12345;
@@ -60,14 +86,20 @@ public class ConfigurationProvider implements IConfigurationProvider {
     
   }
   
+  private void parseClientConfigLine(String configFileLine) {
+    String[] clientAndPort;
+    if(configFileLine.indexOf(":") > 0) {
+      clientAndPort = configFileLine.split(":");
+      clientInfo.put(clientAndPort[0], Integer.parseInt(clientAndPort[1]));
+    }
+  }
+  
   private void parseServerConfigLine(String configFileLine) {
     String[] variableAndValue;
     if(configFileLine.indexOf("=") > 0) {
       variableAndValue = configFileLine.split("=");
       serverVariables.put(variableAndValue[0], variableAndValue[1]);
-    }
-    
-    
+    }  
   }
   
   private void readCommandConfigurations() {
