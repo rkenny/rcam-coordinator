@@ -13,11 +13,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Component;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
-import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
@@ -51,10 +49,10 @@ public class Client implements IClient {
   CharsetEncoder asciiEncoder;
   boolean running;
   
-  ICommandQueuer commandQueuer;
+  //ICommandQueuer commandQueuer;
+  Queue<ICommand> incomingCommandQueue;
+  Queue<ICommand> outgoingCommandQueue;
   
-  //@Autowired
-  //@Qualifier("commandFactory")
   ICommandFactory commandFactory;
   
   IConfigurationProvider configurationProvider;
@@ -67,7 +65,7 @@ public class Client implements IClient {
   
   public Client() {
     configurationProvider = new ConfigurationProvider();
-    this.commandQueuer = new CommandQueuer();
+
     this.commandFactory = new CommandFactory(this.configurationProvider.getCommandConfigurations(), 
         this.configurationProvider.getCommandVariables(), this.configurationProvider.getServerVariables());
     this.asciiDecoder = Charset.forName("US-ASCII").newDecoder();
@@ -80,7 +78,7 @@ public class Client implements IClient {
   }
   
   public void addOutgoingCommand(ICommand command) {
-    this.commandQueuer.addOutgoingCommand(command);
+    this.outgoingCommandQueue.add(command);
   }
   
   public void run() {
@@ -136,7 +134,7 @@ public class Client implements IClient {
         try {
           ICommand incomingCommand = commandFactory.createCommand(readFromChannel(selectedChannel));
           if(null != incomingCommand) {
-            commandQueuer.addIncomingCommand(incomingCommand);
+            incomingCommandQueue.add(incomingCommand);
             if(!incomingCommand.isIgnored()) {
               writeCommandToChannel(selectedChannel, commandFactory.createAckCommand(incomingCommand));                
             }
@@ -158,7 +156,7 @@ public class Client implements IClient {
       if(key.isWritable()) {
         try {
           ICommand outgoingCommand;
-          while((outgoingCommand = commandQueuer.getNextOutgoingCommand()) != null) {
+          while((outgoingCommand = outgoingCommandQueue.poll()) != null) {
             writeCommandToChannel(selectedChannel, outgoingCommand);
           }
         } catch(IOException ioException) {
@@ -214,6 +212,13 @@ public class Client implements IClient {
     buffer.clear();
   }
 
+  public void joinIncomingCommandQueue(Queue<ICommand> commandQueue) {
+    this.incomingCommandQueue = commandQueue;
+  }
+
+  public void joinOutgoingCommandQueue(Queue<ICommand> commandQueue) {
+    this.outgoingCommandQueue = commandQueue;
+  }
 
 
    

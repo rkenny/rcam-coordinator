@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component(value="configurationProvider")
 public class ConfigurationProvider implements IConfigurationProvider {
 
-  Map<String, Integer> clientInfo;
+  Map<String, Integer> backendInfo;
 
   Map<String, List<String>> commandConfigurations;
   Map<String, Map<String, String>> commandVariables;
@@ -46,21 +46,21 @@ public class ConfigurationProvider implements IConfigurationProvider {
   }
   
   private void readClientsConfiguration() {
-    clientInfo = new HashMap<String, Integer>();
-    File clientsConfigFile = new File("config/clients.conf");
+    backendInfo = new HashMap<String, Integer>();
+    File clientsConfigFile = new File("config/backends.conf");
     BufferedReader reader;
     try {
       reader = new BufferedReader(new FileReader(clientsConfigFile));
       String configFileLine;
       while((configFileLine = reader.readLine()) != null) {
-        parseClientConfigLine(configFileLine);
+        parseBackendConfigLine(configFileLine);
       }  
     } catch(FileNotFoundException e) {
       System.out.println("File not found. Going with defaults");
-      clientInfo.put("127.0.0.1", 12345);
+      backendInfo.put("127.0.0.1", 12345);
     } catch(IOException e) {
       System.out.println("Error setting server configuration. Going with the defaults.");
-      clientInfo.put("127.0.0.1", 12345);
+      backendInfo.put("127.0.0.1", 12345);
     }
   }
   
@@ -86,11 +86,11 @@ public class ConfigurationProvider implements IConfigurationProvider {
     
   }
   
-  private void parseClientConfigLine(String configFileLine) {
-    String[] clientAndPort;
+  private void parseBackendConfigLine(String configFileLine) {
+    String[] nameAndPort;
     if(configFileLine.indexOf(":") > 0) {
-      clientAndPort = configFileLine.split(":");
-      clientInfo.put(clientAndPort[0], Integer.parseInt(clientAndPort[1]));
+      nameAndPort = configFileLine.split(":");
+      backendInfo.put(nameAndPort[0], Integer.parseInt(nameAndPort[1]));
     }
   }
   
@@ -166,8 +166,8 @@ public class ConfigurationProvider implements IConfigurationProvider {
   }
   
   
-  public Iterator<Map.Entry<String, Integer>> getClientMapIterator() {
-    return clientInfo.entrySet().iterator();
+  public Iterator<Map.Entry<String, Integer>> getBackendMapIterator() {
+    return backendInfo.entrySet().iterator();
   }
   
   public Map<String, String> getServerVariables() {
@@ -184,6 +184,15 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   public Map<String, Map<String, String>> getCommandVariables() {
     return commandVariables;
+  }
+
+  public List<String> getBackendList() {
+    List<String> backendList = new ArrayList<String>();
+    for(String server : backendInfo.keySet()) {
+      backendList.add(server + ":" + backendInfo.get(server));
+    }
+        
+    return backendList;
   }
 
 }

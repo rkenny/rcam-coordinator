@@ -23,16 +23,21 @@ public class ClientFactory implements IClientFactory {
   @Qualifier("configurationProvider")
   IConfigurationProvider configurationProvider;
   
+  private CommandQueuer commandQueuer;
+  
   public ClientFactory() {
     remoteClients = new ArrayList<IClient>(); 
   }
   
   @PostConstruct
   public void initializeClients() {
-    Iterator<Map.Entry<String, Integer>> clientIterator = configurationProvider.getClientMapIterator();
+    Iterator<Map.Entry<String, Integer>> clientIterator = configurationProvider.getBackendMapIterator();
+    commandQueuer = new CommandQueuer(configurationProvider.getBackendList());
     while(clientIterator.hasNext()) {
       Map.Entry<String, Integer> pair = (Map.Entry<String, Integer>) clientIterator.next(); 
-      Client newClient = new Client(pair.getKey(), pair.getValue()); 
+      Client newClient = new Client(pair.getKey(), pair.getValue());
+      newClient.joinIncomingCommandQueue(commandQueuer.getIncomingCommandQueue(pair.getKey() + ":" + pair.getValue()));
+      newClient.joinOutgoingCommandQueue(commandQueuer.getOutgoingCommandQueue(pair.getKey() + ":" + pair.getValue()));
       remoteClients.add(newClient);
       newClient.startClientThread();
       //clientIterator.remove();

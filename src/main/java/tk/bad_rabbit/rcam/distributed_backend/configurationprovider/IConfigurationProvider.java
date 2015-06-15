@@ -13,11 +13,11 @@ public interface IConfigurationProvider {
 
   String getBaseUrl();
 
-  Iterator<Entry<String, Integer>> getClientMapIterator();
+  Iterator<Entry<String, Integer>> getBackendMapIterator();
   
 
   public Map<String, List<String>> getCommandConfigurations();
   public Map<String, Map<String, String>> getCommandVariables();
   public Map<String, String> getServerVariables();
-
+  public List<String> getBackendList();
 }
