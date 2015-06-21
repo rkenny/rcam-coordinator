@@ -81,6 +81,10 @@ public class Client implements IClient {
     this.outgoingCommandQueue.add(command);
   }
   
+  public void addIncomingCommand(ICommand command) {
+    this.incomingCommandQueue.add(command);
+  }
+  
   public void run() {
     try {
       initializeClient();
@@ -134,9 +138,9 @@ public class Client implements IClient {
         try {
           ICommand incomingCommand = commandFactory.createCommand(readFromChannel(selectedChannel));
           if(null != incomingCommand) {
-            incomingCommandQueue.add(incomingCommand);
+            addIncomingCommand(incomingCommand.wasReceived());
             if(!incomingCommand.isIgnored()) {
-              writeCommandToChannel(selectedChannel, commandFactory.createAckCommand(incomingCommand));                
+              writeCommandToChannel(selectedChannel, commandFactory.createAckCommand(incomingCommand.wasAcked()));                
             }
           } else {
             //writeCommandToChannel(selectedChannel, commandFactory.createErrorCommand(incomingCommand));  
@@ -154,14 +158,18 @@ public class Client implements IClient {
         }
       }
       if(key.isWritable()) {
+        ICommand outgoingCommand = null;
         try {
-          ICommand outgoingCommand;
           while((outgoingCommand = outgoingCommandQueue.poll()) != null) {
-            writeCommandToChannel(selectedChannel, outgoingCommand);
+            writeCommandToChannel(selectedChannel, outgoingCommand.wasSent());
           }
         } catch(IOException ioException) {
           System.err.println("Error writing to a channel. Closing that channel");
           ioException.printStackTrace();
+          
+          if(outgoingCommand != null) {
+            outgoingCommand.commandError();
+          }
           try {
             socketChannel.register(clientSelector, SelectionKey.OP_READ);
             selectedChannel.close();

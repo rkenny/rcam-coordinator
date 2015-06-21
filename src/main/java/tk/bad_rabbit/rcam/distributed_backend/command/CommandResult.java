@@ -47,4 +47,28 @@ public class CommandResult implements ICommand {
     // TODO Auto-generated method stub
     return CharBuffer.wrap(notificationCommand());
   }
+
+
+  public ICommand wasReceived() {
+    // TODO Auto-generated method stub
+    return this;
+  }
+
+
+  public ICommand wasAcked() {
+    // TODO Auto-generated method stub
+    return this;
+  }
+
+
+  public ICommand wasSent() {
+    // TODO Auto-generated method stub
+    return this;
+  }
+
+
+  public ICommand commandError() {
+    // TODO Auto-generated method stub
+    return this;
+  }
 }

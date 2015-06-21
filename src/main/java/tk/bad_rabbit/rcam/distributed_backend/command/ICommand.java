@@ -7,4 +7,10 @@ public interface ICommand {
   public Boolean isIgnored();
   public Integer getAckNumber();
   public String getCommandName();
+
+  public ICommand wasReceived();
+  public ICommand wasAcked();
+  public ICommand wasSent();
+  public ICommand commandError();
+
 }

@@ -11,6 +11,7 @@ public class Command implements ICommand {
   private Map<String, String> clientVariables;
   private Map<String, String> commandVariables;
   private Map<String, String> serverVariables;
+  private CommandState state;
   
   
   public Command(String commandName, Integer commandAckNumber, List<String> commandString, Map<String, String> clientVariables,
@@ -21,10 +22,33 @@ public class Command implements ICommand {
     this.clientVariables = clientVariables;
     this.commandVariables = commandVariables;
     this.serverVariables = serverVariables;
+    
+    this.state = CommandState.NEW;
   }
   
   public Boolean isIgnored() {
     return(commandVariables.get("ignored") == "true");
+  }
+  
+  
+  public ICommand wasSent() {
+    this.state = isIgnored() ? CommandState.SENT : CommandState.AWAITING_ACK;
+    return this;
+  }
+  
+  public ICommand wasReceived() {
+    this.state = CommandState.RECEIVED;
+    return this;
+  }
+ ;
+  public ICommand wasAcked() {
+    this.state = CommandState.ACKED;
+    return this;
+  }
+  
+  public ICommand commandError() {
+    this.state = CommandState.ERROR;
+    return this;
   }
   
   public String finalizeCommandString() {

@@ -65,7 +65,7 @@ public class CommandFactory implements ICommandFactory {
           && commandString.indexOf("[") > 0 )? commandString.indexOf("[") : commandTypeLength;
       commandType = commandString.substring(0, commandTypeLength).trim();
       
-      
+      System.out.println(commandString);
       Integer commandAckNumber;
       if(commandString.indexOf("[") > 0 && commandString.indexOf("[") < commandString.indexOf("(") ) {
         commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
