@@ -12,8 +12,9 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Queue;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Configurable;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.stereotype.Component;
 
+import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
@@ -50,8 +52,8 @@ public class Client implements IClient {
   boolean running;
   
   //ICommandQueuer commandQueuer;
-  Queue<ICommand> incomingCommandQueue;
-  Queue<ICommand> outgoingCommandQueue;
+  Map<Integer, ICommand> incomingCommandQueue;
+  Map<Integer, ICommand> outgoingCommandQueue;
   
   ICommandFactory commandFactory;
   
@@ -78,11 +80,15 @@ public class Client implements IClient {
   }
   
   public void addOutgoingCommand(ICommand command) {
-    this.outgoingCommandQueue.add(command);
+    synchronized(outgoingCommandQueue) {
+      this.outgoingCommandQueue.put(command.getAckNumber(), command);
+      System.out.println("Added a command to the outgoing queue");
+    }
   }
   
   public void addIncomingCommand(ICommand command) {
-    this.incomingCommandQueue.add(command);
+    this.incomingCommandQueue.put(command.getAckNumber(), command);
+    System.out.println("Got here");
   }
   
   public void run() {
@@ -160,7 +166,8 @@ public class Client implements IClient {
       if(key.isWritable()) {
         ICommand outgoingCommand = null;
         try {
-          while((outgoingCommand = outgoingCommandQueue.poll()) != null) {
+          while((outgoingCommand = getNextOutgoingCommand()) != null) {
+            System.out.println("Writing command");
             writeCommandToChannel(selectedChannel, outgoingCommand.wasSent());
           }
         } catch(IOException ioException) {
@@ -185,6 +192,24 @@ public class Client implements IClient {
     }
   }
   
+  private ICommand getNextOutgoingCommand() {
+  //Map<Integer, ICommand> outgoingCommands = serverOutgoingCommandQueue2.get(server);
+    synchronized(outgoingCommandQueue) {
+      Collection<ICommand> commands =  outgoingCommandQueue.values();
+        
+      Iterator<ICommand> i = commands.iterator();
+      ICommand command;
+      if(i.hasNext()) {
+        command = i.next();
+        if(command.isReadyToSend()) {
+          return command;
+        }
+        i.remove();
+      }
+      return null;
+    }
+  }
+  
   public CharBuffer readFromChannel(SocketChannel selectedChannel) throws IOException {
     CharBuffer returnedBuffer;
     ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -199,6 +224,7 @@ public class Client implements IClient {
       returnedBuffer = CharBuffer.allocate(1024);
     }
     
+    System.out.println("Read: " + returnedBuffer.toString());
     return returnedBuffer;
     
   }
@@ -220,11 +246,11 @@ public class Client implements IClient {
     buffer.clear();
   }
 
-  public void joinIncomingCommandQueue(Queue<ICommand> commandQueue) {
+  public void joinIncomingCommandQueue(Map<Integer, ICommand> commandQueue) {
     this.incomingCommandQueue = commandQueue;
   }
 
-  public void joinOutgoingCommandQueue(Queue<ICommand> commandQueue) {
+  public void joinOutgoingCommandQueue(Map<Integer, ICommand> commandQueue) {
     this.outgoingCommandQueue = commandQueue;
   }
 

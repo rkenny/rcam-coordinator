@@ -10,7 +10,12 @@ public interface ICommand {
 
   public ICommand wasReceived();
   public ICommand wasAcked();
+  public ICommand readyToSend();
   public ICommand wasSent();
   public ICommand commandError();
+  
+  
+  public Boolean isReadyToSend();
+  public Boolean isInState(CommandState state);
 
 }

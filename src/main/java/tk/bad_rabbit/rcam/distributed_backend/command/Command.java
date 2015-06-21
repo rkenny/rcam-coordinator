@@ -4,6 +4,8 @@ import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
 
+import org.glassfish.grizzly.servlet.ExpectationHandler.AckAction;
+
 public class Command implements ICommand {
   private List<String> commandString;
   private String commandName;
@@ -30,6 +32,18 @@ public class Command implements ICommand {
     return(commandVariables.get("ignored") == "true");
   }
   
+  public Boolean isInState(CommandState state) {
+    return this.state == state;
+  }
+  
+  public Boolean isReadyToSend() {
+    return (isIgnored() && this.state == CommandState.NEW || !isIgnored() && this.state == CommandState.READY_TO_SEND);
+  }
+  
+  public ICommand readyToSend() {
+    this.state = CommandState.READY_TO_SEND;
+    return this;
+  }
   
   public ICommand wasSent() {
     this.state = isIgnored() ? CommandState.SENT : CommandState.AWAITING_ACK;

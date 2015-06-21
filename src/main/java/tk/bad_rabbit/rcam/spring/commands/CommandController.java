@@ -39,7 +39,7 @@ public class CommandController {
     while(clientIterator.hasNext()) {
       IClient currentClient = clientIterator.next();
       ICommand command = commandFactory.createCommand(commandString);
-      currentClient.addOutgoingCommand(command);
+      currentClient.addOutgoingCommand(command.readyToSend());
   //    //clientIterator.remove();
     }
     

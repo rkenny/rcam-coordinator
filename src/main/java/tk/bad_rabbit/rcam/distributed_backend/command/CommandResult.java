@@ -2,6 +2,7 @@ package tk.bad_rabbit.rcam.distributed_backend.command;
 
 import java.nio.CharBuffer;
 
+// this class is looking more and more like it needs to be refactored into a Command similar to Ack()
 public class CommandResult implements ICommand {
   public String commandType;
   private Boolean success;
@@ -11,6 +12,16 @@ public class CommandResult implements ICommand {
     success = false;
   }
   
+  public Boolean isReadyToSend() {
+    return true;
+  }
+  
+  public ICommand readyToSend() {
+    return this;
+  }
+  public Boolean isInState(CommandState state) {
+    return true;
+  }
   
   public CommandResult setSuccess() {
     this.success = true;
