@@ -27,6 +27,33 @@ public class Command implements ICommand {
     
     this.state = CommandState.NEW;
   }
+  public ICommand copy() {
+    ICommand copiedCommand;
+    copiedCommand = new Command(this.commandName, this.commandAckNumber, this.commandString, this.clientVariables,
+        this.commandVariables, this.serverVariables);
+    copiedCommand.setState(this.state);
+    return copiedCommand;
+  }
+  
+  public String getCommandVariable(String variableName) {
+    return this.commandVariables.get(variableName);
+  }
+  public String getClientVariable(String variableName) {
+    return this.clientVariables.get(variableName);
+  }
+  public String getServerVariable(String variableName) {
+    return this.serverVariables.get(variableName);
+  }
+  
+  
+  public CommandState setState(CommandState state) {
+    this.state = state;
+    return state;
+  }
+  
+  public Boolean isType(String commandType) {
+    return this.commandName.equals(commandType);
+  }
   
   public Boolean isIgnored() {
     return(commandVariables.get("ignored") == "true");
@@ -95,9 +122,9 @@ public class Command implements ICommand {
     return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
   }
 
-  public CommandResult call() throws Exception {
-    return new CommandResult(commandName).setSuccess();//commandName + " " + finalizeCommandString();
-  }
+  //public CommandResult call() throws Exception {
+  //  return new CommandResult(commandName).setSuccess();//commandName + " " + finalizeCommandString();
+  // }
 
 }
 

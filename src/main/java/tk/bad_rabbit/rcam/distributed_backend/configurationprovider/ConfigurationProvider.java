@@ -33,18 +33,22 @@ public class ConfigurationProvider implements IConfigurationProvider {
     readServerConfiguration();
     readCommandConfigurations();
     
-    addAckCommand();
+
+    addSystemCommand("Ack", "&command[&ackNumber]", "true");
+    addSystemCommand("CommandResult", "(ackNumber=&ackNumber,resultCode=&resultCode)", "false");
+    
   }
   
-  private void addAckCommand() {
-    List<String> ackCommand = new ArrayList<String>();
-    ackCommand.add("&command[&ackNumber]");
-    commandConfigurations.put("Ack", ackCommand);
-    Map<String, String> ackCommandVariables = new HashMap<String, String>();
-    ackCommandVariables.put("ignored", "true");
-    commandVariables.put("Ack", ackCommandVariables);
+  private void addSystemCommand(String commandType, String commandString, String isIgnored) {
+    List<String> successCommand = new ArrayList<String>();
+    successCommand.add(commandString);
+    commandConfigurations.put(commandType, successCommand);
+    Map<String, String> successCommandVariables = new HashMap<String, String>();
+    successCommandVariables.put("ignored", isIgnored);
+    commandVariables.put(commandType, successCommandVariables);
   }
-  
+
+   
   private void readClientsConfiguration() {
     backendInfo = new HashMap<String, Integer>();
     File clientsConfigFile = new File("config/backends.conf");

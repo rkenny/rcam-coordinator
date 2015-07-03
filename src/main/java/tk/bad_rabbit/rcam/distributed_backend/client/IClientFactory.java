@@ -4,4 +4,5 @@ import java.util.List;
 
 public interface IClientFactory {
   public List<IClient> getRemoteClients();
+  public CommandQueuer getCommandQueuer();
 }

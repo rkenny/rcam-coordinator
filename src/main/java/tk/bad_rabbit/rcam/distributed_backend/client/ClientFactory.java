@@ -23,6 +23,8 @@ public class ClientFactory implements IClientFactory {
   @Qualifier("configurationProvider")
   IConfigurationProvider configurationProvider;
   
+  @Autowired
+  @Qualifier("commandQueuer")
   private CommandQueuer commandQueuer;
   
   public ClientFactory() {
@@ -32,7 +34,7 @@ public class ClientFactory implements IClientFactory {
   @PostConstruct
   public void initializeClients() {
     Iterator<Map.Entry<String, Integer>> clientIterator = configurationProvider.getBackendMapIterator();
-    commandQueuer = new CommandQueuer(configurationProvider.getBackendList());
+    //commandQueuer = new CommandQueuer(configurationProvider.getBackendList());
     while(clientIterator.hasNext()) {
       Map.Entry<String, Integer> pair = (Map.Entry<String, Integer>) clientIterator.next(); 
       Client newClient = new Client(pair.getKey(), pair.getValue());
@@ -47,6 +49,11 @@ public class ClientFactory implements IClientFactory {
   
   public List<IClient> getRemoteClients() {
     return remoteClients;
+  }
+  
+  // this needs to go into a Spring bean. One commandQueuer for the entire application.
+  public CommandQueuer getCommandQueuer() {
+    return commandQueuer;
   }
   
 }

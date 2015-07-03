@@ -82,13 +82,11 @@ public class Client implements IClient {
   public void addOutgoingCommand(ICommand command) {
     synchronized(outgoingCommandQueue) {
       this.outgoingCommandQueue.put(command.getAckNumber(), command);
-      System.out.println("Added a command to the outgoing queue");
     }
   }
   
   public void addIncomingCommand(ICommand command) {
     this.incomingCommandQueue.put(command.getAckNumber(), command);
-    System.out.println("Got here");
   }
   
   public void run() {

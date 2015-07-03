@@ -60,12 +60,14 @@ public class CommandFactory implements ICommandFactory {
       ICommand command = null;
       String commandType;
       int commandTypeLength;
+      
+      System.out.println("Creating command " + commandString);
+      
       commandTypeLength = commandString.indexOf("(") > 0 ? commandString.indexOf("(") : commandString.length();
       commandTypeLength = (commandString.indexOf("[") < commandTypeLength  
           && commandString.indexOf("[") > 0 )? commandString.indexOf("[") : commandTypeLength;
       commandType = commandString.substring(0, commandTypeLength).trim();
       
-      System.out.println(commandString);
       Integer commandAckNumber;
       if(commandString.indexOf("[") > 0 && commandString.indexOf("[") < commandString.indexOf("(") ) {
         commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
@@ -90,7 +92,7 @@ public class CommandFactory implements ICommandFactory {
       Map<String, String> clientVariables = new HashMap<String, String>();
       int variablesSubstringStart = commandString.indexOf("(");
       int variablesSubstringEnd = commandString.indexOf(")");
-      
+
       if(variablesSubstringStart > 0 && variablesSubstringEnd > 0 && variablesSubstringEnd <= commandString.length()) {
         String[] clientVariableArray;
         if(commandString.indexOf(",") > 0) {

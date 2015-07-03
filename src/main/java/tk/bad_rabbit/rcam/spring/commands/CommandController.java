@@ -11,14 +11,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.async.DeferredResult;
 
+//import tk.bad_rabbit.rcam.app.RunController;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClientFactory;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
 @Controller
-@Scope("request")
+@Scope("session")
 public class CommandController {
   
   
@@ -36,13 +38,12 @@ public class CommandController {
   public @ResponseBody String command(@PathVariable("commandString") String commandString) {
     remoteClients = clientFactory.getRemoteClients();
     Iterator<IClient> clientIterator = remoteClients.iterator();
+    ICommand command = commandFactory.createCommand(commandString).readyToSend();
     while(clientIterator.hasNext()) {
       IClient currentClient = clientIterator.next();
-      ICommand command = commandFactory.createCommand(commandString);
-      currentClient.addOutgoingCommand(command.readyToSend());
-  //    //clientIterator.remove();
+      currentClient.addOutgoingCommand(command.copy());
     }
     
-    return "Recieved "+commandString+" post.";
+    return "Done";
   }
 }
