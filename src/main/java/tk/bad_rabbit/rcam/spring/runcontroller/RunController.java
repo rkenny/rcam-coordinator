@@ -1,9 +1,9 @@
 package tk.bad_rabbit.rcam.spring.runcontroller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
@@ -66,7 +67,6 @@ public class RunController{
   @Scheduled(fixedRate=125) // look into using an Observer for this
   public void run() {
     running = true;
-    ICommand command;
     //while(running) {
     //  try {
     //    Thread.sleep(2000);
@@ -74,22 +74,10 @@ public class RunController{
     //    e.printStackTrace();
     //  }
       //System.out.println("Looping in the RunController.");
-      List<Pair<String, ICommand>> commandResults = commandQueuer.getNextIncomingCommandResults();
+      handleCompletedCommands();
+      runCommandReductions();
       
-      Iterator<Pair<String, ICommand>> serverCommandIterator = commandResults.iterator();
-      Pair<String, ICommand> serverCommand;
-      synchronized(commandResults) {
-        while(serverCommandIterator.hasNext()) {
-          serverCommand = serverCommandIterator.next();
-          command = serverCommand.getRight();
-          //System.out.println("Checking " + serverCommand.getLeft());
-          if(command != null) {
-            System.out.println("Received a Command(type="+command.getCommandName()+") for commandNumber = " +command.getClientVariable("ackNumber")
-                +" resultCode="+command.getClientVariable("resultCode"));
-            
-          }
-        }
-      }
+      
 //      while((command = commandQueuer.getNextReadyToExecuteCommand()) != null) {
 //        if(!command.isIgnored()) {
 //          commandResults.add(commandExecutor.submit(command.setDone()));
@@ -114,5 +102,42 @@ public class RunController{
 //    }
     //commandExecutor.shutdown();
   }
+  
+  private void runCommandReductions() {
+    Collection<Pair<ICommand, String>> commands = commandQueuer.getCommandReturnCode();
+    Iterator<Pair<ICommand, String>> commandIterator = commands.iterator();
+    Pair<ICommand, String> commandPair;
+    synchronized(commands) {
+      while(commandIterator.hasNext()) {
+        commandPair = commandIterator.next();
+        String returnCode = commandPair.getRight();
+        if(returnCode != null && returnCode.equals("0")) {
+          this.commandExecutor.execute(commandPair.getLeft().reduce());
+          commandQueuer.removeOutgoingCommand(commandPair.getLeft());
+          commandIterator.remove();
+        }
+        
+      }
+    }
+  }
+
+private void handleCompletedCommands() {
+  List<Pair<String, ICommand>> commandResults = commandQueuer.getNextIncomingCommandResults();
+  ICommand command;
+    
+  Iterator<Pair<String, ICommand>> serverCommandIterator = commandResults.iterator();
+  Pair<String, ICommand> serverCommand;
+  synchronized(commandResults) {
+    while(serverCommandIterator.hasNext()) {
+      serverCommand = serverCommandIterator.next();
+      command = serverCommand.getRight();
+      //System.out.println("Checking " + serverCommand.getLeft());
+      if(command != null) {
+        commandQueuer.setResultCodeForCommand(serverCommand.getLeft(), command.getClientVariable("ackNumber"), command.getClientVariable("resultCode"));
+        commandQueuer.setStateForCommand(serverCommand.getLeft(), command.getClientVariable("ackNumber"), CommandState.DONE);
+      }
+    }
+  }
+}
  
 }

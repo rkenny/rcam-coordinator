@@ -4,8 +4,6 @@ import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
 
-import org.glassfish.grizzly.servlet.ExpectationHandler.AckAction;
-
 public class Command implements ICommand {
   private List<String> commandString;
   private String commandName;
@@ -14,6 +12,15 @@ public class Command implements ICommand {
   private Map<String, String> commandVariables;
   private Map<String, String> serverVariables;
   private CommandState state;
+  private String returnCode;
+  
+  public void setReturnCode(String returnCode) {
+    this.returnCode = returnCode;
+  }
+  
+  public String getReturnCode() {
+    return this.returnCode;
+  }
   
   
   public Command(String commandName, Integer commandAckNumber, List<String> commandString, Map<String, String> clientVariables,
@@ -48,6 +55,7 @@ public class Command implements ICommand {
   
   public CommandState setState(CommandState state) {
     this.state = state;
+    System.out.println("Command " + this.commandName + " " + this.commandAckNumber + " had it's state changed");
     return state;
   }
   
@@ -125,6 +133,17 @@ public class Command implements ICommand {
   //public CommandResult call() throws Exception {
   //  return new CommandResult(commandName).setSuccess();//commandName + " " + finalizeCommandString();
   // }
+  
+  public Runnable reduce() {
+    return new Runnable() {
+
+      public void run() {
+        System.out.println("Reducing " + commandName);
+
+      }
+      
+    };
+  }
 
 }
 

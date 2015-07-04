@@ -3,6 +3,7 @@ package tk.bad_rabbit.rcam.distributed_backend.client;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -143,6 +144,63 @@ public class CommandQueuer implements ICommandQueuer {
 
   public Map<Integer, ICommand> getOutgoingCommandQueue(String server) {
     return serverOutgoingCommandQueue.get(server);
+  }
+
+  public void setResultCodeForCommand(String server, Integer ackNumber, String returnCode) {
+    this.serverOutgoingCommandQueue.get(server).get(ackNumber).setReturnCode(returnCode);
+  }
+  
+  public void setResultCodeForCommand(String server, String ackNumber, String returnCode) {
+    this.setResultCodeForCommand(server, Integer.parseInt(ackNumber), returnCode);
+  }
+  
+  public void setStateForCommand(String server, Integer ackNumber, CommandState commandState) {
+    this.serverOutgoingCommandQueue.get(server).get(ackNumber).setState(commandState);
+  }
+  
+  public void setStateForCommand(String server, String ackNumber, CommandState commandState) {
+    this.setStateForCommand(server, Integer.parseInt(ackNumber), commandState);
+  }
+  
+  public void removeOutgoingCommand(ICommand command) {
+    Collection<Map<Integer, ICommand>> outgoingCommandQueues = serverOutgoingCommandQueue.values();
+    Iterator<Map<Integer, ICommand>> outgoingCommandQueueIterator = outgoingCommandQueues.iterator();
+    Map<Integer, ICommand> outgoingCommandQueue;
+    while(outgoingCommandQueueIterator.hasNext()) {
+      outgoingCommandQueue = outgoingCommandQueueIterator.next();
+      if(outgoingCommandQueue.containsKey(command.getAckNumber())) {
+        outgoingCommandQueue.remove(command.getAckNumber());
+      }
+    }
+  }
+
+  public Collection<Pair<ICommand, String>> getCommandReturnCode() {
+    
+    Map<Integer, Pair<ICommand, String>> commandReturnCodes = new HashMap<Integer, Pair<ICommand, String>>();
+    synchronized(this.serverOutgoingCommandQueue) {
+      Collection<Map<Integer, ICommand>> outgoingCommandQueues = serverOutgoingCommandQueue.values();
+      Iterator<Map<Integer, ICommand>> outgoingCommandQueueIterator = outgoingCommandQueues.iterator();
+      
+      Map<Integer, ICommand> outgoingCommandQueue;
+
+      Iterator<ICommand> outgoingCommandIterator;
+      ICommand command;
+      
+      while(outgoingCommandQueueIterator.hasNext()) {
+        outgoingCommandQueue = outgoingCommandQueueIterator.next();
+        outgoingCommandIterator = outgoingCommandQueue.values().iterator();
+        while(outgoingCommandIterator.hasNext()) {
+          command = outgoingCommandIterator.next();
+          if(!commandReturnCodes.containsKey(command.getAckNumber())
+              || commandReturnCodes.get(command.getAckNumber()).getRight() != "0") {
+            commandReturnCodes.put(command.getAckNumber(), new Pair<ICommand, String>(command, command.getReturnCode()));
+          } 
+          
+        }
+        
+      }
+    }
+    return commandReturnCodes.values();
   }
 
 }

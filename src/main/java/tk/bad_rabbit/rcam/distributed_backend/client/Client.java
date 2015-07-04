@@ -202,7 +202,7 @@ public class Client implements IClient {
         if(command.isReadyToSend()) {
           return command;
         }
-        i.remove();
+        //i.remove();
       }
       return null;
     }
