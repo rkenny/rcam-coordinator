@@ -3,8 +3,9 @@ package tk.bad_rabbit.rcam.distributed_backend.command;
 import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 
-public class Command implements ICommand {
+public class Command extends Observable implements ICommand  {
   private List<String> commandString;
   private String commandName;
   private Integer commandAckNumber;
@@ -56,6 +57,8 @@ public class Command implements ICommand {
   public CommandState setState(CommandState state) {
     this.state = state;
     System.out.println("Command " + this.commandName + " " + this.commandAckNumber + " had it's state changed");
+    setChanged();
+    notifyObservers(this);
     return state;
   }
   

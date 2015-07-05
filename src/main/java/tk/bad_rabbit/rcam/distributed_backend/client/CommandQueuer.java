@@ -8,12 +8,15 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
@@ -25,9 +28,11 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 //import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 @Service(value="commandQueuer")
-public class CommandQueuer implements ICommandQueuer {
+@Scope("singleton")
+public class CommandQueuer implements ICommandQueuer, Observer {
   Map<String, Map<Integer, ICommand>> serverIncomingCommandQueue;
   Map<String, Map<Integer, ICommand>> serverOutgoingCommandQueue;
+  
   
   @Autowired
   @Qualifier("configurationProvider")
@@ -37,8 +42,13 @@ public class CommandQueuer implements ICommandQueuer {
     
   }
   
+  public void update(Observable updatedCommand, Object arg) {
+    System.out.println("A command was updated.");
+  }
+  
   @PostConstruct
   public void initializeCommandQueuer() {
+    System.out.println("Initializing command queuer");
     List<String> serverList = configurationProvider.getBackendList();
     serverIncomingCommandQueue = new ConcurrentHashMap<String, Map<Integer, ICommand>>();
     serverOutgoingCommandQueue = new ConcurrentHashMap<String, Map<Integer, ICommand>>();
@@ -46,7 +56,7 @@ public class CommandQueuer implements ICommandQueuer {
     for(String server : serverList) {
       Map<Integer, ICommand> incomingCommandsMap = Collections.synchronizedMap(new LinkedHashMap<Integer, ICommand>());
       Map<Integer, ICommand> outgoingCommandsMap = Collections.synchronizedMap(new LinkedHashMap<Integer, ICommand>());
-      
+      System.out.println("Adding a commandQueue for " + server);
       serverIncomingCommandQueue.put(server, incomingCommandsMap);
       serverOutgoingCommandQueue.put(server, outgoingCommandsMap);
       

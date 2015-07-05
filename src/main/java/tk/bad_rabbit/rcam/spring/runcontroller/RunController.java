@@ -64,7 +64,7 @@ public class RunController{
 //    
 //  }
   
-  @Scheduled(fixedRate=125) // look into using an Observer for this
+  //@Scheduled(fixedRate=125) // look into using an Observer for this
   public void run() {
     running = true;
     //while(running) {

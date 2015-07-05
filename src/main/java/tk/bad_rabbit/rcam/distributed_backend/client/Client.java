@@ -17,29 +17,29 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.context.annotation.EnableLoadTimeWeaving;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
-import org.springframework.stereotype.Component;
-
-import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
+import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
 
-@Component(value="client")
-@Scope("request")
-@Configurable(preConstruction = true)
-@EnableSpringConfigured
-@EnableLoadTimeWeaving
-public class Client implements IClient {
+//@Component(value="clientImpl")
+//@Scope("request")
+
+public class Client implements IClient  {
 
   String remoteAddress;
   int remotePort;
+  
+  public void setRemoteAddress(String remoteAddress) {
+    this.remoteAddress = remoteAddress;
+  }
+  
+  public void setPort(int remotePort) {
+    this.remotePort = remotePort;
+  }
   
   Thread clientThread;
   
@@ -51,13 +51,22 @@ public class Client implements IClient {
   CharsetEncoder asciiEncoder;
   boolean running;
   
-  //ICommandQueuer commandQueuer;
+  //@Autowired
+  //@Qualifier("commandQueuer")
+  ICommandQueuer commandQueuer;
+  
+  
   Map<Integer, ICommand> incomingCommandQueue;
   Map<Integer, ICommand> outgoingCommandQueue;
   
   ICommandFactory commandFactory;
   
+  //@Autowired
   IConfigurationProvider configurationProvider;
+  
+  public Client() {
+    
+  }
   
   public Client(String remoteAddress, int remotePort) {
     this();
@@ -65,13 +74,35 @@ public class Client implements IClient {
     this.remotePort = remotePort;
   }
   
-  public Client() {
-    configurationProvider = new ConfigurationProvider();
+  public Client(String remoteAddress, Integer remotePort, CommandQueuer commandQueuer, CommandFactory commandFactory2, ConfigurationProvider configurationProvider) {
+    this(remoteAddress, remotePort);
+    this.configurationProvider = configurationProvider;
+    this.commandFactory = commandFactory2;
+    this.commandQueuer = commandQueuer;
+    //  configurationProvider = new ConfigurationProvider();
 
-    this.commandFactory = new CommandFactory(this.configurationProvider.getCommandConfigurations(), 
-        this.configurationProvider.getCommandVariables(), this.configurationProvider.getServerVariables());
+    this.joinIncomingCommandQueue(commandQueuer.getIncomingCommandQueue(remoteAddress + ":" + remotePort));
+    this.joinOutgoingCommandQueue(commandQueuer.getOutgoingCommandQueue(remoteAddress + ":" + remotePort));
+  
     this.asciiDecoder = Charset.forName("US-ASCII").newDecoder();
     this.asciiEncoder = Charset.forName("US-ASCII").newEncoder();
+  }
+  
+//  @PostConstruct
+//  public void postConstruct() {
+//    System.out.println("Postconstruct was called for client " + remoteAddress + " : " + remotePort);
+//    this.commandFactory = new CommandFactory(this.configurationProvider.getCommandConfigurations(), 
+//        this.configurationProvider.getCommandVariables(), this.configurationProvider.getServerVariables());
+//    
+//  }
+  
+  private void initializeClient() throws IOException, ClosedChannelException {
+    clientSelector = Selector.open();
+    socketChannel = SocketChannel.open();
+    socketChannel.configureBlocking(false);
+    socketChannel.connect(new InetSocketAddress(remoteAddress, remotePort));
+    
+    socketChannel.register(clientSelector, SelectionKey.OP_CONNECT);
   }
 
   public void startClientThread() {
@@ -190,8 +221,8 @@ public class Client implements IClient {
     }
   }
   
-  private ICommand getNextOutgoingCommand() {
-  //Map<Integer, ICommand> outgoingCommands = serverOutgoingCommandQueue2.get(server);
+  private ICommand getNextOutgoingCommand() { //XYZ
+//  Map<Integer, ICommand> outgoingCommands = serverOutgoingCommandQueue2.get(server);
     synchronized(outgoingCommandQueue) {
       Collection<ICommand> commands =  outgoingCommandQueue.values();
         
@@ -227,14 +258,7 @@ public class Client implements IClient {
     
   }
   
-  private void initializeClient() throws IOException, ClosedChannelException {
-    clientSelector = Selector.open();
-    socketChannel = SocketChannel.open();
-    socketChannel.configureBlocking(false);
-    socketChannel.connect(new InetSocketAddress(remoteAddress, remotePort));
-    
-    socketChannel.register(clientSelector, SelectionKey.OP_CONNECT);
-  }
+
   
   public void writeCommandToChannel(SocketChannel selectedChannel, ICommand command) throws IOException {
     ByteBuffer buffer = asciiEncoder.encode(command.asCharBuffer());
@@ -246,9 +270,11 @@ public class Client implements IClient {
 
   public void joinIncomingCommandQueue(Map<Integer, ICommand> commandQueue) {
     this.incomingCommandQueue = commandQueue;
-  }
+   }
 
   public void joinOutgoingCommandQueue(Map<Integer, ICommand> commandQueue) {
+    System.out.println("Client " + remoteAddress + ":" + remotePort +" joined an outgoing command quque.");
+    System.out.println("Was it null? " + (commandQueue == null));
     this.outgoingCommandQueue = commandQueue;
   }
 

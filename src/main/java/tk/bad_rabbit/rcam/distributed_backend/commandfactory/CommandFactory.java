@@ -10,6 +10,8 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.Command;
@@ -56,7 +58,8 @@ public class CommandFactory implements ICommandFactory {
       return createCommand(commandBuffer.toString());
     }
     
-    public ICommand createCommand(String commandString) {
+    @Bean(name="Command")
+    public ICommand createCommand(@Value("${commandString}") String commandString) {
       ICommand command = null;
       String commandType;
       int commandTypeLength;
@@ -83,8 +86,7 @@ public class CommandFactory implements ICommandFactory {
       } 
         // won't hit this yet
       //  System.out.println("Won't instantiate that command [" +commandString+ "]");
-            
-      
+
       return command;
     }
 
