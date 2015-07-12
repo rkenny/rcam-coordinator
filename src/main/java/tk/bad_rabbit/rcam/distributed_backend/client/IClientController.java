@@ -1,7 +1,8 @@
 package tk.bad_rabbit.rcam.distributed_backend.client;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
+import java.util.List;
 
 public interface IClientController {
-  public void send(ICommand command);
+  public void register(ACommand command);
+  public List<IClient> getClients();
 }

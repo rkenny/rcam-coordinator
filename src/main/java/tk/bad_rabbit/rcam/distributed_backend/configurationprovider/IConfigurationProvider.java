@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.Pair;
 
 public interface IConfigurationProvider {
@@ -22,4 +23,6 @@ public interface IConfigurationProvider {
   public Map<String, Map<String, String>> getCommandVariables();
   public Map<String, String> getServerVariables();
   public List<String> getBackendList();
+
+  ICommandResponseAction getCommandResponseAction(String commandType);
 }

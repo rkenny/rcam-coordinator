@@ -13,6 +13,8 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import tk.bad_rabbit.rcam.distributed_backend.command.ICommandResponseAction;
+
 @Component(value="configurationProvider")
 public class ConfigurationProvider implements IConfigurationProvider {
 
@@ -21,7 +23,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
   Map<String, List<String>> commandConfigurations;
   Map<String, Map<String, String>> commandVariables;
   Map<String, String> serverVariables;
-
+  Map<String, ICommandResponseAction> commandResponseActions;
   
   
   public ConfigurationProvider() {
@@ -30,22 +32,24 @@ public class ConfigurationProvider implements IConfigurationProvider {
     readClientsConfiguration();
     
     serverVariables = new HashMap<String, String>();
+    commandResponseActions = new HashMap<String, ICommandResponseAction>();
     readServerConfiguration();
     readCommandConfigurations();
     
 
-    addSystemCommand("Ack", "&command[&ackNumber]", "true");
-    addSystemCommand("CommandResult", "(ackNumber=&ackNumber,resultCode=&resultCode)", "false");
+    addSystemCommand("Ack", "&command[&ackNumber]", "true", new AckCommandResponseAction());
+    addSystemCommand("CommandResult", "(ackNumber=&ackNumber,resultCode=&resultCode)", "false", new ResultCommandResponseAction());
     
   }
   
-  private void addSystemCommand(String commandType, String commandString, String isIgnored) {
+  private void addSystemCommand(String commandType, String commandString, String isIgnored, ICommandResponseAction commandResponseAction) {
     List<String> successCommand = new ArrayList<String>();
     successCommand.add(commandString);
     commandConfigurations.put(commandType, successCommand);
     Map<String, String> successCommandVariables = new HashMap<String, String>();
     successCommandVariables.put("ignored", isIgnored);
     commandVariables.put(commandType, successCommandVariables);
+    commandResponseActions.put(commandType, commandResponseAction);
   }
 
    
@@ -153,6 +157,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
         }
         
         commandConfigurations.put(commandConfigDirectory.getName(), commandArgs);
+        commandResponseActions.put(commandConfigDirectory.getName(), new DefaultCommandResponseAction());
         commandVariables.put(commandConfigDirectory.getName(), commandVars);
       }
       
@@ -197,6 +202,10 @@ public class ConfigurationProvider implements IConfigurationProvider {
     }
         
     return backendList;
+  }
+
+  public ICommandResponseAction getCommandResponseAction(String commandType) {
+    return commandResponseActions.get(commandType);
   }
 
 }

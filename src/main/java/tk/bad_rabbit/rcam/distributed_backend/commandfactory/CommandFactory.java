@@ -11,11 +11,10 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Command;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
 @Service(value="commandFactory")
@@ -50,21 +49,18 @@ public class CommandFactory implements ICommandFactory {
     }
         
     
-    public ICommand createAckCommand(ICommand command) {
+    public ACommand createAckCommand(ACommand command) {
       return createCommand("Ack(command=" + command.getCommandName() + ",ackNumber="+command.getAckNumber()+")");
     }
     
-    public ICommand createCommand(CharBuffer commandBuffer) {
+    public ACommand createCommand(CharBuffer commandBuffer) {
       return createCommand(commandBuffer.toString());
     }
-    
-    @Bean(name="Command")
-    public ICommand createCommand(@Value("${commandString}") String commandString) {
-      ICommand command = null;
+ 
+    public ACommand createCommand(@Value("${commandString}") String commandString) {
+      ACommand command = null;
       String commandType;
       int commandTypeLength;
-      
-      System.out.println("Creating command " + commandString);
       
       commandTypeLength = commandString.indexOf("(") > 0 ? commandString.indexOf("(") : commandString.length();
       commandTypeLength = (commandString.indexOf("[") < commandTypeLength  
@@ -77,16 +73,12 @@ public class CommandFactory implements ICommandFactory {
       } else {
         commandAckNumber = new Random().nextInt((99999 - 10000) + 1) + 10000;
       }
-      //Something => Something[12345] => Ack(Something[12345])
-      //Record(duration=200) => Record[123456](duration=200) => Ack(Record[123456])
       
       if(commandConfigurations.containsKey(commandType)) {
         command = new Command(commandType, commandAckNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
-            commandVariables.get(commandType), serverVariables);
+            commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
       } 
-        // won't hit this yet
-      //  System.out.println("Won't instantiate that command [" +commandString+ "]");
-
+       
       return command;
     }
 

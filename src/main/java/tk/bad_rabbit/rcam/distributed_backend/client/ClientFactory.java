@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
+import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 
 @Service(value="clientFactory")
@@ -18,8 +19,7 @@ public class ClientFactory implements IClientFactory  {
   private List<IClient> remoteClients;
   
   @Autowired
-  @Qualifier("commandQueuer")
-  private CommandQueuer commandQueuer;
+  RunController runController;
   
   @Autowired
   @Qualifier("commandFactory")
@@ -35,7 +35,7 @@ public class ClientFactory implements IClientFactory  {
   }
   
   public Client createClient(String remoteAddress, Integer remotePort) {
-    Client newClient = new Client(remoteAddress, remotePort, commandQueuer, commandFactory, configurationProvider);
+    Client newClient = new Client(remoteAddress, remotePort, commandFactory, configurationProvider, runController);
     return newClient;
   }
   

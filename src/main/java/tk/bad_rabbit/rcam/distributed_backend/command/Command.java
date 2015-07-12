@@ -3,16 +3,21 @@ package tk.bad_rabbit.rcam.distributed_backend.command;
 import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
 
-public class Command extends Observable implements ICommand  {
+import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
+
+public class Command extends ACommand {
   private List<String> commandString;
   private String commandName;
   private Integer commandAckNumber;
   private Map<String, String> clientVariables;
   private Map<String, String> commandVariables;
   private Map<String, String> serverVariables;
-  private CommandState state;
+  private ICommandResponseAction commandResponseAction;
+  
+  private StateObject state;
+  
   private String returnCode;
   
   public void setReturnCode(String returnCode) {
@@ -24,8 +29,16 @@ public class Command extends Observable implements ICommand  {
   }
   
   
+  public void performCommandResponseAction(Object actionObject) {
+    this.commandResponseAction.doAction(actionObject, this);
+  }
+  
+  public Command() {
+  }
+  
   public Command(String commandName, Integer commandAckNumber, List<String> commandString, Map<String, String> clientVariables,
-      Map<String, String> commandVariables, Map<String, String> serverVariables) {
+      Map<String, String> commandVariables, Map<String, String> serverVariables, ICommandResponseAction commandResponseAction) {
+    this();
     this.commandName = commandName;
     this.commandString = commandString;
     this.commandAckNumber = commandAckNumber;
@@ -33,12 +46,13 @@ public class Command extends Observable implements ICommand  {
     this.commandVariables = commandVariables;
     this.serverVariables = serverVariables;
     
-    this.state = CommandState.NEW;
+    this.commandResponseAction = commandResponseAction;
   }
-  public ICommand copy() {
-    ICommand copiedCommand;
+  
+  public ACommand copy() {
+    ACommand copiedCommand;
     copiedCommand = new Command(this.commandName, this.commandAckNumber, this.commandString, this.clientVariables,
-        this.commandVariables, this.serverVariables);
+        this.commandVariables, this.serverVariables, this.commandResponseAction);
     copiedCommand.setState(this.state);
     return copiedCommand;
   }
@@ -54,12 +68,17 @@ public class Command extends Observable implements ICommand  {
   }
   
   
-  public CommandState setState(CommandState state) {
+  public StateObject setState(StateObject state) {
     this.state = state;
-    System.out.println("Command " + this.commandName + " " + this.commandAckNumber + " had it's state changed");
+    
     setChanged();
-    notifyObservers(this);
+    notifyObservers(state);
+    
     return state;
+  }
+  
+  public void doAction(Object actionObject) {
+    state.doAction(actionObject, this);
   }
   
   public Boolean isType(String commandType) {
@@ -70,38 +89,6 @@ public class Command extends Observable implements ICommand  {
     return(commandVariables.get("ignored") == "true");
   }
   
-  public Boolean isInState(CommandState state) {
-    return this.state == state;
-  }
-  
-  public Boolean isReadyToSend() {
-    return (isIgnored() && this.state == CommandState.NEW || !isIgnored() && this.state == CommandState.READY_TO_SEND);
-  }
-  
-  public ICommand readyToSend() {
-    this.state = CommandState.READY_TO_SEND;
-    return this;
-  }
-  
-  public ICommand wasSent() {
-    this.state = isIgnored() ? CommandState.SENT : CommandState.AWAITING_ACK;
-    return this;
-  }
-  
-  public ICommand wasReceived() {
-    this.state = CommandState.RECEIVED;
-    return this;
-  }
- ;
-  public ICommand wasAcked() {
-    this.state = CommandState.ACKED;
-    return this;
-  }
-  
-  public ICommand commandError() {
-    this.state = CommandState.ERROR;
-    return this;
-  }
   
   public String finalizeCommandString() {
     String finalCommandString = commandString.toString();
@@ -132,10 +119,6 @@ public class Command extends Observable implements ICommand  {
     // TODO Auto-generated method stub
     return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
   }
-
-  //public CommandResult call() throws Exception {
-  //  return new CommandResult(commandName).setSuccess();//commandName + " " + finalizeCommandString();
-  // }
   
   public Runnable reduce() {
     return new Runnable() {

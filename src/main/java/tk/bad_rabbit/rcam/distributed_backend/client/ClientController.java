@@ -12,9 +12,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
-import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
+import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 @Controller(value="clientController")
 @Scope("singleton")
@@ -22,11 +21,9 @@ public class ClientController implements IClientController {
   @Autowired
   @Qualifier("configurationProvider")
   IConfigurationProvider configurationProvider;
-  
 
   @Autowired
-  @Qualifier("commandQueuer")
-  ICommandQueuer commandQueuer;
+  RunController runController;
   
   @Autowired
   @Qualifier("clientFactory")
@@ -53,13 +50,21 @@ public class ClientController implements IClientController {
     }
   }
   
-  public void send(ICommand command) {
+  public void register(ACommand command) {
     Iterator<IClient> remoteClientIterator = remoteClients.iterator();
     IClient client;
     while(remoteClientIterator.hasNext()) {
       client = remoteClientIterator.next();
-      client.addOutgoingCommand(command);
+      client.observeCommand(command);
+      runController.observeCommand(command);
+      //command.addObserver(client.getClientThread());
+//      command.addObserver(runController);
+      //client.addOutgoingCommand(command);
     }
+  }
+  
+  public List<IClient> getClients() {
+    return remoteClients;
   }
   
 }

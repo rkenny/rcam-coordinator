@@ -8,8 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
@@ -20,8 +18,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Pair;
+import tk.bad_rabbit.rcam.distributed_backend.command.StateObject;
 import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 
@@ -29,9 +27,9 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 
 @Service(value="commandQueuer")
 @Scope("singleton")
-public class CommandQueuer implements ICommandQueuer, Observer {
-  Map<String, Map<Integer, ICommand>> serverIncomingCommandQueue;
-  Map<String, Map<Integer, ICommand>> serverOutgoingCommandQueue;
+public class CommandQueuer implements ICommandQueuer  {
+  Map<String, Map<Integer, ACommand>> serverIncomingCommandQueue;
+  Map<String, Map<Integer, ACommand>> serverOutgoingCommandQueue;
   
   
   @Autowired
@@ -42,20 +40,16 @@ public class CommandQueuer implements ICommandQueuer, Observer {
     
   }
   
-  public void update(Observable updatedCommand, Object arg) {
-    System.out.println("A command was updated.");
-  }
-  
   @PostConstruct
   public void initializeCommandQueuer() {
     System.out.println("Initializing command queuer");
     List<String> serverList = configurationProvider.getBackendList();
-    serverIncomingCommandQueue = new ConcurrentHashMap<String, Map<Integer, ICommand>>();
-    serverOutgoingCommandQueue = new ConcurrentHashMap<String, Map<Integer, ICommand>>();
+    serverIncomingCommandQueue = new ConcurrentHashMap<String, Map<Integer, ACommand>>();
+    serverOutgoingCommandQueue = new ConcurrentHashMap<String, Map<Integer, ACommand>>();
     
     for(String server : serverList) {
-      Map<Integer, ICommand> incomingCommandsMap = Collections.synchronizedMap(new LinkedHashMap<Integer, ICommand>());
-      Map<Integer, ICommand> outgoingCommandsMap = Collections.synchronizedMap(new LinkedHashMap<Integer, ICommand>());
+      Map<Integer, ACommand> incomingCommandsMap = Collections.synchronizedMap(new LinkedHashMap<Integer, ACommand>());
+      Map<Integer, ACommand> outgoingCommandsMap = Collections.synchronizedMap(new LinkedHashMap<Integer, ACommand>());
       System.out.println("Adding a commandQueue for " + server);
       serverIncomingCommandQueue.put(server, incomingCommandsMap);
       serverOutgoingCommandQueue.put(server, outgoingCommandsMap);
@@ -65,16 +59,16 @@ public class CommandQueuer implements ICommandQueuer, Observer {
   }
   
 
-  public void addIncomingCommand(String server, ICommand command) {
+  public void addIncomingCommand(String server, ACommand command) {
     serverIncomingCommandQueue.get(server).put(command.getAckNumber(), command);
   }
 
-  public void addOutgoingCommand(String server, ICommand command) {
+  public void addOutgoingCommand(String server, ACommand command) {
     serverOutgoingCommandQueue.get(server).put(command.getAckNumber(), command);
   }
 
-  public List<Pair<String, ICommand>> getNextIncomingCommandResults() {
-    List<Pair<String, ICommand>> incomingCommandResults = new ArrayList<Pair<String, ICommand>>();
+  public List<Pair<String, ACommand>> getNextIncomingCommandResults() {
+    List<Pair<String, ACommand>> incomingCommandResults = new ArrayList<Pair<String, ACommand>>();
     //System.out.println("CommandQueuer getNextIncomingCommandResults()");
     synchronized(serverIncomingCommandQueue) {
       Iterator<String> serverIterator = serverIncomingCommandQueue.keySet().iterator();
@@ -82,7 +76,7 @@ public class CommandQueuer implements ICommandQueuer, Observer {
       if(serverIterator.hasNext()) {
         //System.out.println("CommandQueuer adding another Server entry");
         server = serverIterator.next();
-        incomingCommandResults.add(new Pair<String, ICommand>(server, getNextIncomingCommandResult(server)));
+        incomingCommandResults.add(new Pair<String, ACommand>(server, getNextIncomingCommandResult(server)));
       }
     }
     
@@ -90,14 +84,14 @@ public class CommandQueuer implements ICommandQueuer, Observer {
     return incomingCommandResults;
   }
   
-  public ICommand getNextIncomingCommandResult(String server) {
-    ICommand returnCommand = null;
+  public ACommand getNextIncomingCommandResult(String server) {
+    ACommand returnCommand = null;
     //System.out.println("CommandQueuer getNextIncomingCommandResult");
-    Map<Integer, ICommand> incomingCommands = serverIncomingCommandQueue.get(server);
+    Map<Integer, ACommand> incomingCommands = serverIncomingCommandQueue.get(server);
     synchronized(incomingCommands) {
-      Collection<ICommand> commands = incomingCommands.values();
-      Iterator<ICommand> i = commands.iterator();
-      ICommand command = null;
+      Collection<ACommand> commands = incomingCommands.values();
+      Iterator<ACommand> i = commands.iterator();
+      ACommand command = null;
       Boolean keepIterating = true;
       if(i.hasNext() && keepIterating) {
         command = i.next();
@@ -114,45 +108,45 @@ public class CommandQueuer implements ICommandQueuer, Observer {
     return returnCommand;
   }
   
-  public ICommand getNextOutgoingCommand(String server, CommandState state) {
-    Map<Integer, ICommand> outgoingCommands = serverOutgoingCommandQueue.get(server);
+  public ACommand getNextOutgoingCommand(String server, StateObject state) {
+    Map<Integer, ACommand> outgoingCommands = serverOutgoingCommandQueue.get(server);
     
     synchronized(outgoingCommands) {
-      Collection<ICommand> commands =  outgoingCommands.values();
-      Iterator<ICommand> i = commands.iterator();
-      ICommand command;
+      Collection<ACommand> commands =  outgoingCommands.values();
+      Iterator<ACommand> i = commands.iterator();
+      ACommand command;
       if(i.hasNext()) {
         command = i.next();
-        if(command.isInState(state)) {
-          return command;
-        }
+        //if(command.isInState(state)) {
+        //  return command;
+//        }
       }
       return null;
     }
   }
 
-  public ICommand getNextIncomingCommand(String server, CommandState state) {
-    Map<Integer, ICommand> incomingCommands = serverIncomingCommandQueue.get(server);
+  public ACommand getNextIncomingCommand(String server, StateObject state) {
+    Map<Integer, ACommand> incomingCommands = serverIncomingCommandQueue.get(server);
     
     synchronized(incomingCommands) {
-      Collection<ICommand> commands =  incomingCommands.values();
-      Iterator<ICommand> i = commands.iterator();
-      ICommand command;
+      Collection<ACommand> commands =  incomingCommands.values();
+      Iterator<ACommand> i = commands.iterator();
+      ACommand command;
       if(i.hasNext()) {
         command = i.next();
-        if(command.isInState(state)) {
-          return command;
-        }
+        //if(command.isInState(state)) {
+        //  return command;
+        // }
       }
       return null;
     }
   }
   
-  public Map<Integer, ICommand> getIncomingCommandQueue(String server) {
+  public Map<Integer, ACommand> getIncomingCommandQueue(String server) {
     return serverIncomingCommandQueue.get(server);
   }
 
-  public Map<Integer, ICommand> getOutgoingCommandQueue(String server) {
+  public Map<Integer, ACommand> getOutgoingCommandQueue(String server) {
     return serverOutgoingCommandQueue.get(server);
   }
 
@@ -164,18 +158,18 @@ public class CommandQueuer implements ICommandQueuer, Observer {
     this.setResultCodeForCommand(server, Integer.parseInt(ackNumber), returnCode);
   }
   
-  public void setStateForCommand(String server, Integer ackNumber, CommandState commandState) {
+  public void setStateForCommand(String server, Integer ackNumber, StateObject commandState) {
     this.serverOutgoingCommandQueue.get(server).get(ackNumber).setState(commandState);
   }
   
-  public void setStateForCommand(String server, String ackNumber, CommandState commandState) {
+  public void setStateForCommand(String server, String ackNumber, StateObject commandState) {
     this.setStateForCommand(server, Integer.parseInt(ackNumber), commandState);
   }
   
-  public void removeOutgoingCommand(ICommand command) {
-    Collection<Map<Integer, ICommand>> outgoingCommandQueues = serverOutgoingCommandQueue.values();
-    Iterator<Map<Integer, ICommand>> outgoingCommandQueueIterator = outgoingCommandQueues.iterator();
-    Map<Integer, ICommand> outgoingCommandQueue;
+  public void removeOutgoingCommand(ACommand command) {
+    Collection<Map<Integer, ACommand>> outgoingCommandQueues = serverOutgoingCommandQueue.values();
+    Iterator<Map<Integer, ACommand>> outgoingCommandQueueIterator = outgoingCommandQueues.iterator();
+    Map<Integer, ACommand> outgoingCommandQueue;
     while(outgoingCommandQueueIterator.hasNext()) {
       outgoingCommandQueue = outgoingCommandQueueIterator.next();
       if(outgoingCommandQueue.containsKey(command.getAckNumber())) {
@@ -184,17 +178,17 @@ public class CommandQueuer implements ICommandQueuer, Observer {
     }
   }
 
-  public Collection<Pair<ICommand, String>> getCommandReturnCode() {
+  public Collection<Pair<ACommand, String>> getCommandReturnCode() {
     
-    Map<Integer, Pair<ICommand, String>> commandReturnCodes = new HashMap<Integer, Pair<ICommand, String>>();
+    Map<Integer, Pair<ACommand, String>> commandReturnCodes = new HashMap<Integer, Pair<ACommand, String>>();
     synchronized(this.serverOutgoingCommandQueue) {
-      Collection<Map<Integer, ICommand>> outgoingCommandQueues = serverOutgoingCommandQueue.values();
-      Iterator<Map<Integer, ICommand>> outgoingCommandQueueIterator = outgoingCommandQueues.iterator();
+      Collection<Map<Integer, ACommand>> outgoingCommandQueues = serverOutgoingCommandQueue.values();
+      Iterator<Map<Integer, ACommand>> outgoingCommandQueueIterator = outgoingCommandQueues.iterator();
       
-      Map<Integer, ICommand> outgoingCommandQueue;
+      Map<Integer, ACommand> outgoingCommandQueue;
 
-      Iterator<ICommand> outgoingCommandIterator;
-      ICommand command;
+      Iterator<ACommand> outgoingCommandIterator;
+      ACommand command;
       
       while(outgoingCommandQueueIterator.hasNext()) {
         outgoingCommandQueue = outgoingCommandQueueIterator.next();
@@ -203,7 +197,7 @@ public class CommandQueuer implements ICommandQueuer, Observer {
           command = outgoingCommandIterator.next();
           if(!commandReturnCodes.containsKey(command.getAckNumber())
               || commandReturnCodes.get(command.getAckNumber()).getRight() != "0") {
-            commandReturnCodes.put(command.getAckNumber(), new Pair<ICommand, String>(command, command.getReturnCode()));
+            commandReturnCodes.put(command.getAckNumber(), new Pair<ACommand, String>(command, command.getReturnCode()));
           } 
           
         }

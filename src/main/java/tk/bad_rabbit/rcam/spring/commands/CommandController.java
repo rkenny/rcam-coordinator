@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
 //import tk.bad_rabbit.rcam.app.RunController;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClientController;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.ReadyToSendState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
-import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
-import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
+import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 @Controller
 @Scope("session")
@@ -31,16 +31,19 @@ public class CommandController {
   @Qualifier("commandFactory")
   ICommandFactory commandFactory;
   
-  
-  
-  List<IClient> remoteClients;
-  
-    
   @RequestMapping(value= "/command/{commandString}", method = RequestMethod.POST)
   public @ResponseBody String command(@PathVariable("commandString") String commandString) {
     
-    ICommand command = commandFactory.createCommand(commandString).readyToSend();
-    clientController.send(command);
+    ACommand command = commandFactory.createCommand(commandString);
+    
+//    for(IClient client : clientController.getClients()) {
+//      command.addObserver(client);
+//    }
+//    command.addObserver(runController);
+    clientController.register(command);
+    
+    command.setState(new ReadyToSendState());
+    
     return "Done";
   }
 }

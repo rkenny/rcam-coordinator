@@ -2,11 +2,11 @@ package tk.bad_rabbit.rcam.distributed_backend.commandfactory;
 
 import java.nio.CharBuffer;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
+import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
 
 public interface ICommandFactory {
-  ICommand createCommand(CharBuffer commandBuffer);
-  ICommand createCommand(String command);
-  ICommand createAckCommand(ICommand incomingCommand);
+  ACommand createCommand(CharBuffer commandBuffer);
+  ACommand createCommand(String command);
+  ACommand createAckCommand(ACommand incomingCommand);
 
 }
