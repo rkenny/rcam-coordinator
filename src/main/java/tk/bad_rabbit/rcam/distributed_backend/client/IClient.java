@@ -3,6 +3,7 @@ package tk.bad_rabbit.rcam.distributed_backend.client;
 import java.util.Map;
 import java.util.Observer;
 
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 
 public interface IClient {

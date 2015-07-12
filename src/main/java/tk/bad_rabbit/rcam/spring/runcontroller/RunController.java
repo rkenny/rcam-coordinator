@@ -16,9 +16,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.AckedState;
-import tk.bad_rabbit.rcam.distributed_backend.command.Pair;
+import tk.bad_rabbit.rcam.app.Pair;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandCompletedState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
 @Controller

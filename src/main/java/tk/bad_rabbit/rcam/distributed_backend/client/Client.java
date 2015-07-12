@@ -4,9 +4,10 @@ import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Exchanger;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.AckedState;
-import tk.bad_rabbit.rcam.distributed_backend.command.AwaitingAckState;
-import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.AwaitingAckState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;

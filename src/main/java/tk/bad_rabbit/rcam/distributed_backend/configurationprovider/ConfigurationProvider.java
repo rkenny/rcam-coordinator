@@ -13,7 +13,10 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.DefaultCommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ResultCommandResponseAction;
 
 @Component(value="configurationProvider")
 public class ConfigurationProvider implements IConfigurationProvider {

@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
 //import tk.bad_rabbit.rcam.app.RunController;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClientController;
-import tk.bad_rabbit.rcam.distributed_backend.command.ReadyToSendState;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ReadyToSendState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 

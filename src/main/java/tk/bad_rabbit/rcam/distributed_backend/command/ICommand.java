@@ -2,8 +2,8 @@ package tk.bad_rabbit.rcam.distributed_backend.command;
 
 import java.nio.CharBuffer;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 
 public interface ICommand {
@@ -26,7 +26,7 @@ public interface ICommand {
   public Boolean isType(String commandType);
   
   public ACommand copy();
-  public StateObject setState(StateObject state);
+  public ICommandState setState(ICommandState state);
   
   public void setReturnCode(String returnCode);
   public String getReturnCode();

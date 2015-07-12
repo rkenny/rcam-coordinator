@@ -1,4 +1,4 @@
-package tk.bad_rabbit.rcam.distributed_backend.command;
+package tk.bad_rabbit.rcam.app;
 
 public class Pair<FirstType, SecondType> {
   private FirstType left;

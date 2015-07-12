@@ -1,7 +1,6 @@
-package tk.bad_rabbit.rcam.distributed_backend.configurationprovider;
+package tk.bad_rabbit.rcam.distributed_backend.command.responseactions;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class AckCommandResponseAction implements ICommandResponseAction {

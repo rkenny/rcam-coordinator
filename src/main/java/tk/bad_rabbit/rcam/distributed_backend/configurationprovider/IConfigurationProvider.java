@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import tk.bad_rabbit.rcam.app.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommandResponseAction;
-import tk.bad_rabbit.rcam.distributed_backend.command.Pair;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 
 public interface IConfigurationProvider {
   // This is the coordinator's configuration provider

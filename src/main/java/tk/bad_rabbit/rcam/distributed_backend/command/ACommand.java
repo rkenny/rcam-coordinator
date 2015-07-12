@@ -1,10 +1,9 @@
-package tk.bad_rabbit.rcam.distributed_backend.client;
+package tk.bad_rabbit.rcam.distributed_backend.command;
 
 import java.nio.CharBuffer;
 import java.util.Observable;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandState;
 
 public abstract class ACommand extends Observable implements ICommand {
 

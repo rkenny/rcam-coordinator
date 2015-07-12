@@ -4,8 +4,9 @@ import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 public class Command extends ACommand {
   private List<String> commandString;
@@ -16,7 +17,7 @@ public class Command extends ACommand {
   private Map<String, String> serverVariables;
   private ICommandResponseAction commandResponseAction;
   
-  private StateObject state;
+  private ICommandState state;
   
   private String returnCode;
   
@@ -68,7 +69,7 @@ public class Command extends ACommand {
   }
   
   
-  public StateObject setState(StateObject state) {
+  public ICommandState setState(ICommandState state) {
     this.state = state;
     
     setChanged();

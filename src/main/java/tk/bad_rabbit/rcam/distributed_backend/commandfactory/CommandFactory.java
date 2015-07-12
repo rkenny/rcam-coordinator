@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Command;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 

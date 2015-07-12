@@ -11,7 +11,6 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import tk.bad_rabbit.rcam.distributed_backend.commandqueuer.ICommandQueuer;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 import tk.bad_rabbit.rcam.spring.config.DefaultCoordinatorSpringConfig;

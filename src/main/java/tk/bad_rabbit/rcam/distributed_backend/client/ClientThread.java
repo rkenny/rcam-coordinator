@@ -17,10 +17,11 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.CommandState;
-import tk.bad_rabbit.rcam.distributed_backend.command.ErrorCommandState;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
-import tk.bad_rabbit.rcam.distributed_backend.command.ReceivedCommandState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ReceivedCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 

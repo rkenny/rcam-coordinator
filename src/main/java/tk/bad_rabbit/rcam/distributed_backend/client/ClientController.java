@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
