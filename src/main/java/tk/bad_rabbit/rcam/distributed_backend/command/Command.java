@@ -3,8 +3,8 @@ package tk.bad_rabbit.rcam.distributed_backend.command;
 import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
@@ -78,7 +78,7 @@ public class Command extends ACommand {
     return state;
   }
   
-  public void doAction(Object actionObject) {
+  public void doAction(Observer actionObject) {
     state.doAction(actionObject, this);
   }
   

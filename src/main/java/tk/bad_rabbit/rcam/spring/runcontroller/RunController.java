@@ -151,16 +151,14 @@ public class RunController implements Observer {
 
 
 
-public void update(Observable updatedCommand, Object arg) {
-  synchronized(updatedCommand) {
-    if(! (commandList.containsKey(((ACommand) updatedCommand).getAckNumber()))) {
-      commandList.put(((ACommand) updatedCommand).getAckNumber(), (ACommand) updatedCommand);
+  public void update(Observable updatedCommand, Object arg) {
+    synchronized(updatedCommand) {
+      System.out.println(arg.getClass().getSimpleName());
+      if(! (commandList.containsKey(((ACommand) updatedCommand).getAckNumber()))) {
+        commandList.put(((ACommand) updatedCommand).getAckNumber(), (ACommand) updatedCommand);
+      }    
+      ((ACommand) updatedCommand).doAction(this);
     }
-    
-    ((ACommand) updatedCommand).doAction(this);
   }
-  
-
-}
  
 }

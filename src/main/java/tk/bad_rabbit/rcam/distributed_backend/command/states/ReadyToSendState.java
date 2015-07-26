@@ -1,14 +1,15 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.states;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
+import java.util.Observer;
+
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
 
 public class ReadyToSendState implements ICommandState {
   
-  public void doAction(Object actionObject, Object actionSubject) {
-    if(actionObject instanceof IClientThread ) {
-      ((IClientThread) actionObject).send((ACommand) actionSubject);
+  public void doAction(Observer observer, ACommand actionSubject) {
+    if(observer instanceof IClientThread ) {
+      ((IClientThread) observer).send((ACommand) actionSubject);
     }
   }
 

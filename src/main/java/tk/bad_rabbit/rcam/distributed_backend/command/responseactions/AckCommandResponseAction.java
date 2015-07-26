@@ -11,6 +11,10 @@ public class AckCommandResponseAction implements ICommandResponseAction {
       ((RunController) actionObject).removeCommand(actionSubject);
     }
     
+    if( ((ACommand) actionSubject).isType("CommandResult")) {
+      System.out.println("This is a CommandResult for command="+Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")));
+    }
+    
   }
 
 }

@@ -12,14 +12,16 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ReceivedCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
@@ -152,11 +154,14 @@ public class ClientThread implements Runnable, Observer, IClientThread {
       try {
         if(key.isReadable()) {
           keyIterator.remove();
-          ACommand processingCommand = commandFactory.createCommand(readFromChannel(selectedChannel));
+          List<CharBuffer> newCommands = readFromChannel(selectedChannel);
+          for(CharBuffer newCommand : newCommands) {
+            ACommand processingCommand = commandFactory.createCommand(newCommand);
           
-          if(processingCommand != null) {
-            runController.observeCommand(processingCommand);
-            processingCommand.setState(new ReceivedCommandState());
+            if(processingCommand != null) {
+              runController.observeCommand(processingCommand);
+              processingCommand.setState(new ReceivedCommandState());
+            }
           }
         }
 
@@ -175,21 +180,29 @@ public class ClientThread implements Runnable, Observer, IClientThread {
     }
   }
   
-  public CharBuffer readFromChannel(SocketChannel selectedChannel) throws IOException {
-    CharBuffer returnedBuffer;
+  public List<CharBuffer> readFromChannel(SocketChannel selectedChannel) throws IOException {
+    ArrayList<CharBuffer> returnedList = new ArrayList<CharBuffer>();
+    
+    String returnedBuffer;
     ByteBuffer buffer = ByteBuffer.allocate(1024);
     
     selectedChannel.read(buffer);
     buffer.flip();
     
     try {
-      returnedBuffer = asciiDecoder.decode(buffer);
+      returnedBuffer = asciiDecoder.decode(buffer).toString();
     } catch (CharacterCodingException e) {
       e.printStackTrace();
-      returnedBuffer = CharBuffer.allocate(1024);
+      returnedBuffer =""; // CharBuffer.allocate(1024);
     }
     
-    return returnedBuffer;
+    String[] tokens = returnedBuffer.split("\n");
+    
+    for(String commandString : tokens) {
+      returnedList.add(CharBuffer.wrap(commandString));
+    }
+    
+    return returnedList;
     
   }
   

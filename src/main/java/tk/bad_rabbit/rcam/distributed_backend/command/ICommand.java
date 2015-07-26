@@ -1,8 +1,8 @@
 package tk.bad_rabbit.rcam.distributed_backend.command;
 
 import java.nio.CharBuffer;
+import java.util.Observer;
 
-import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 
@@ -31,7 +31,7 @@ public interface ICommand {
   public void setReturnCode(String returnCode);
   public String getReturnCode();
 
-  public void doAction(Object actionObject);
+  public void doAction(Observer actionObject);
   
   public Runnable reduce();
 
