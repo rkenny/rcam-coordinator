@@ -9,7 +9,7 @@ public class CommandCompletedState extends ACommandState {
 
   public void doAction(Observer observer, String server, ACommand actionSubject) {
     if(observer instanceof ClientThread) {
-      ((ClientThread) observer).readyToReduce(server, (ACommand) actionSubject);
+      ((ClientThread) observer).readyToReduce((ACommand) actionSubject);
     }
   }
 

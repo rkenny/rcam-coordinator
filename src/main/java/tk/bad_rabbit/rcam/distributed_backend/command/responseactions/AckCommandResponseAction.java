@@ -9,14 +9,17 @@ public class AckCommandResponseAction implements ICommandResponseAction {
     if( ((ACommand) actionSubject).isType("Ack")) {
       //((RunController) actionObject).ackCommandReceived(server, Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")));
       if(actionObject instanceof ClientThread) {
-        ((ClientThread) actionObject).ackCommandReceived(server, Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")));
+        //((ClientThread) actionObject).ackCommandReceived(Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")));
+        System.out.println("About to ack command " + actionSubject.getAckNumber());
+        ((ClientThread) actionObject).ackCommandReceived(actionSubject);
+        actionSubject = null;
       }
       //((RunController) actionObject).removeCommand(actionSubject);
     }
     
-    if( ((ACommand) actionSubject).isType("CommandResult")) {
-      System.out.println("This is a CommandResult for command="+Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")));
-    }
+    //if( ((ACommand) actionSubject).isType("CommandResult")) {
+    //  System.out.println("This is a CommandResult for command="+Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")));
+    //}
     
   }
 

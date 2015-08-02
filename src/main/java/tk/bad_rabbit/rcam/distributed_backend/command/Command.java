@@ -1,6 +1,7 @@
 package tk.bad_rabbit.rcam.distributed_backend.command;
 
 import java.nio.CharBuffer;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -79,14 +80,17 @@ public class Command extends ACommand {
   
     this.state.put(server,  state);
     
+    Entry<String, ICommandState> doesThisWork = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
+    Entry<ACommand, Entry<String, ICommandState>> really = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, doesThisWork);
+    
     setChanged();
-    notifyObservers(state);
+    notifyObservers(really);
     
     return state;
   }
   
   public void doAction(Observer actionObject, String server) {
-    
+    System.out.println("About to doAction for server " + server + " on command " + getAckNumber() + " with state " + this.state.get(server).getClass().getSimpleName());
     state.get(server).doAction(actionObject, server, this);
   }
   

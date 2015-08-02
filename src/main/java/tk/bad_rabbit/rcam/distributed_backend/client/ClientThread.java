@@ -15,14 +15,17 @@ import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ReceivedCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
@@ -51,8 +54,14 @@ public class ClientThread implements Runnable, Observer, IClientThread {
   
   public void update(Observable updatedCommand, Object arg) {
     synchronized(updatedCommand) {
+      if(arg instanceof Map.Entry) {
+        Map.Entry<ACommand, Map.Entry<String, ICommandState>> doesThisWork = (Map.Entry<ACommand, Map.Entry<String, ICommandState>> ) arg;
+        if(this.getServerString().equals(doesThisWork.getValue().getKey())) {
+          System.out.println("Right server. Do the command action.");
+          ((ACommand) updatedCommand).doAction(this, doesThisWork.getValue().getKey());
+        }
+      }
       
-      ((ACommand) updatedCommand).doAction(this, getServerString());
     }
   }
   
@@ -60,21 +69,23 @@ public class ClientThread implements Runnable, Observer, IClientThread {
     return remoteAddress+":"+remotePort;
   }
   
-  public void ackCommandReceived(String server, int ackNumber) {
-    this.runController.ackCommandReceived(server, ackNumber);
+  public void ackCommandReceived(ACommand command) {
+    command.setState(getServerString(), new AckedState());
   }
   
-  public void commandResultReceived(String server, int ackNumber, String resultCode) {
-    this.runController.commandResultReceived(server, ackNumber, resultCode);
+  public void commandResultReceived(int ackNumber, String resultCode) {
+    System.out.println("Command result received for command " + ackNumber);
+    this.runController.commandResultReceived(getServerString(), ackNumber, resultCode);
   }
   
-  public void removeCommand(String server, ACommand command) {
-    this.runController.removeCommand(command);
+  public void removeCommand(ACommand command) {
+    this.runController.removeCommand(getServerString(), command);
   }
   
-  public void readyToReduce(String server, ACommand command) {
-    System.out.println("Server " + server + " Is calling readyToReduce on " + command.getAckNumber());
-    this.runController.readyToReduce(server, command);
+  public void readyToReduce(ACommand command) {
+    System.out.println("Server " + getServerString() + " Is calling readyToReduce on " + command.getAckNumber());
+    command.setState(getServerString(), new CommandReadyToReduceState());
+    this.runController.readyToReduce(getServerString(), command);
   }
   
   

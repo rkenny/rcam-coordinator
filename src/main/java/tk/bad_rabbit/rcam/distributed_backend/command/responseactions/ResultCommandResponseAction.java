@@ -7,10 +7,11 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 public class ResultCommandResponseAction implements ICommandResponseAction {
 
   public void doAction(Object actionObject, String server, ACommand actionSubject) {
+    System.out.println("Performing resultCommandResponseAction");
     if( ((ACommand) actionSubject).isType("CommandResult")) {
-      ((ClientThread) actionObject).commandResultReceived(server, Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")),
+      ((ClientThread) actionObject).commandResultReceived(Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")),
           ((ACommand) actionSubject).getClientVariable("resultCode"));
-      ((ClientThread) actionObject).removeCommand(server, actionSubject);
+      ((ClientThread) actionObject).removeCommand(actionSubject);
     }
   }
 
