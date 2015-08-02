@@ -78,7 +78,7 @@ public class CommandFactory implements ICommandFactory {
         command = new Command(commandType, commandAckNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
             commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
       } 
-       
+      System.out.println("Created command " + commandString);
       return command;
     }
 

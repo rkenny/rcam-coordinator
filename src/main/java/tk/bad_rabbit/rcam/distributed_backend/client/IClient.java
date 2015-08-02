@@ -15,5 +15,7 @@ public interface IClient {
   public void setRemoteAddress(String server);
   public void setPort(int port);
   
+  public String getServerString();
+  
   public void observeCommand(ACommand command);
 }

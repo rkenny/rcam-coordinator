@@ -30,7 +30,7 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 public class ClientThread implements Runnable, Observer, IClientThread {
 
   Thread clientThread;
-  Client thisClient;
+  //Client thisClient;
   
   SocketChannel socketChannel;
   Selector clientSelector;
@@ -51,9 +51,32 @@ public class ClientThread implements Runnable, Observer, IClientThread {
   
   public void update(Observable updatedCommand, Object arg) {
     synchronized(updatedCommand) {
-      ((ACommand) updatedCommand).doAction(this);
+      
+      ((ACommand) updatedCommand).doAction(this, getServerString());
     }
   }
+  
+  private String getServerString() {
+    return remoteAddress+":"+remotePort;
+  }
+  
+  public void ackCommandReceived(String server, int ackNumber) {
+    this.runController.ackCommandReceived(server, ackNumber);
+  }
+  
+  public void commandResultReceived(String server, int ackNumber, String resultCode) {
+    this.runController.commandResultReceived(server, ackNumber, resultCode);
+  }
+  
+  public void removeCommand(String server, ACommand command) {
+    this.runController.removeCommand(command);
+  }
+  
+  public void readyToReduce(String server, ACommand command) {
+    System.out.println("Server " + server + " Is calling readyToReduce on " + command.getAckNumber());
+    this.runController.readyToReduce(server, command);
+  }
+  
   
   public ClientThread(RunController runController, ICommandFactory commandFactory, String remoteAddress, int remotePort ) {
     this.remoteAddress = remoteAddress;
@@ -122,7 +145,7 @@ public class ClientThread implements Runnable, Observer, IClientThread {
         }
       } catch(IOException ioException) {
         System.err.println("Error reading from a channel. Closing that channel.");
-        command.setState(new ErrorCommandState());
+        command.setState(getServerString(), new ErrorCommandState());
         try {
           selectedChannel.close();
         } catch (IOException e) {
@@ -160,7 +183,8 @@ public class ClientThread implements Runnable, Observer, IClientThread {
           
             if(processingCommand != null) {
               runController.observeCommand(processingCommand);
-              processingCommand.setState(new ReceivedCommandState());
+              this.observeCommand(processingCommand);
+              processingCommand.setState(getServerString(), new ReceivedCommandState());
             }
           }
         }

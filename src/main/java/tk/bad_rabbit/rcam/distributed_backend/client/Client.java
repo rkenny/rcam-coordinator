@@ -1,13 +1,10 @@
 package tk.bad_rabbit.rcam.distributed_backend.client;
 
-import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Exchanger;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.AwaitingAckState;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.CommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
@@ -23,11 +20,14 @@ public class Client implements IClient  {
     newClientThread.observeCommand(command);
   }
 
+  public String getServerString() {
+    return remoteAddress + ":"+ new Integer(remotePort).toString();
+  }
   
   
   public void send(ACommand command) {
     sendCommand(command);
-    command.setState(new AwaitingAckState());
+    command.setState(getServerString(), new AwaitingAckState());
   }
 
   private void sendCommand(ACommand command) {
@@ -38,7 +38,7 @@ public class Client implements IClient  {
   
   public void sendAck(ACommand command) {
     sendCommand(commandFactory.createAckCommand(command));
-    command.setState(new AckedState());
+    command.setState(getServerString(), new AckedState());
   }
   
   public void setRemoteAddress(String remoteAddress) {

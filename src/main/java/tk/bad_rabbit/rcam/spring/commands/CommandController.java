@@ -42,7 +42,7 @@ public class CommandController {
 //    command.addObserver(runController);
     clientController.register(command);
     
-    command.setState(new ReadyToSendState());
+    //command.setState(new ReadyToSendState());
     
     return "Done";
   }

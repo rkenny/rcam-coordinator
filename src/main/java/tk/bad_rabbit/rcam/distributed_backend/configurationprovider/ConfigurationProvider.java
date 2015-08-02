@@ -102,7 +102,9 @@ public class ConfigurationProvider implements IConfigurationProvider {
     if(configFileLine.indexOf(":") > 0) {
       nameAndPort = configFileLine.split(":");
       backendInfo.put(nameAndPort[0], Integer.parseInt(nameAndPort[1]));
+      System.out.println("Added " + nameAndPort[0] + ":" + Integer.parseInt(nameAndPort[1]));
     }
+    
   }
   
   private void parseServerConfigLine(String configFileLine) {

@@ -16,7 +16,7 @@ public interface ICommand {
   public String getClientVariable(String variableName);
   public String getServerVariable(String variableName);
 
-  public void performCommandResponseAction(Object actionObject);
+  public void performCommandResponseAction(String server, Object actionObject);
 //  public ACommand wasReceived();
 //  public ACommand wasAcked();
 //  public ICommand readyToSend();
@@ -25,14 +25,15 @@ public interface ICommand {
   
   public Boolean isType(String commandType);
   
-  public ACommand copy();
-  public ICommandState setState(ICommandState state);
+  //public ACommand copy();
+  public ICommandState setState(String server, ICommandState state);
   
   public void setReturnCode(String returnCode);
   public String getReturnCode();
 
-  public void doAction(Observer actionObject);
+  public void doAction(Observer actionObject, String server);
   
+  public Boolean isReadyToReduce();
   public Runnable reduce();
 
 }

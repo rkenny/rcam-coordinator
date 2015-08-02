@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ReadyToSendState;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
@@ -58,6 +59,8 @@ public class ClientController implements IClientController {
       client = remoteClientIterator.next();
       client.observeCommand(command);
       runController.observeCommand(command);
+      
+      command.setState(client.getServerString(), new ReadyToSendState());
       //command.addObserver(client.getClientThread());
 //      command.addObserver(runController);
       //client.addOutgoingCommand(command);
