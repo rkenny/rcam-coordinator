@@ -68,6 +68,8 @@ dependencies {
   compile group: 'org.aspectj', name:'aspectjrt', version:'1.6.8'
   compile group: 'org.aspectj', name:'aspectjweaver', version:'1.6.8'
   compile group: 'org.aspectj', name:'aspectjtools', version:'1.6.8'
+  
+  compile group: 'org.json', name:'json', version:'20140107'
   ajc "org.aspectj:aspectjtools:1.6.8"
   
   compile group: 'org.glassfish.grizzly', name: 'grizzly-framework', version: '2.3.19'
