@@ -66,7 +66,6 @@ public class RunController implements Observer {
   }
   
   public void removeCommand(String server, ACommand command) {
-    //commandList.remove(command.getAckNumber());
     commandList.get(server).remove(command.getAckNumber());
     command = null;
   }
@@ -79,8 +78,6 @@ public class RunController implements Observer {
   public void initializeRunController() {
     this.commandExecutor = Executors.newFixedThreadPool(5);
     commandResults = new ArrayList<Future<Pair<Integer, Integer>>>();
-    //runControllerThread = new Thread(this);
-    //runControllerThread.run();
     System.out.println("RunController created");
   }
   
@@ -99,12 +96,8 @@ public class RunController implements Observer {
         if(!commandList.get(server).containsKey(((ACommand) updatedCommand).getAckNumber())) {
           commandList.get(server).put(((ACommand) updatedCommand).getAckNumber(), (ACommand) updatedCommand);
         }
-        //if(! (commandList.containsKey(((ACommand) updatedCommand).getAckNumber()))) {
-        //  commandList.put(((ACommand) updatedCommand).getAckNumber(), (ACommand) updatedCommand);
-        //}
       }
-          
-      //((ACommand) updatedCommand).doAction(this);
+
     }
   }
  
