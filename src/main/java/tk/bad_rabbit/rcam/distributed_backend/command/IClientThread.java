@@ -5,7 +5,7 @@ public interface IClientThread {
   public void send(ACommand command);
   
   public void ackCommandReceived(ACommand command);
-  public void commandResultReceived(int ackNumber, String resultCode);
+  public void commandResultReceived(Integer ackNumber, Integer resultCode);
   public void removeCommand(ACommand command);
   public void readyToReduce(ACommand command);
 }

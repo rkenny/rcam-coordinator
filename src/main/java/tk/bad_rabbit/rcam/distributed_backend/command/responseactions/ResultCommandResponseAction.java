@@ -8,10 +8,17 @@ public class ResultCommandResponseAction implements ICommandResponseAction {
 
   public void doAction(Object actionObject, String server, ACommand actionSubject) {
     System.out.println("Performing resultCommandResponseAction");
-    if( ((ACommand) actionSubject).isType("CommandResult")) {
-      ((ClientThread) actionObject).commandResultReceived(Integer.parseInt(((ACommand) actionSubject).getClientVariable("ackNumber")),
-          ((ACommand) actionSubject).getClientVariable("resultCode"));
-      ((ClientThread) actionObject).removeCommand(actionSubject);
+    ACommand command = (ACommand) actionSubject;
+    if(command.isType("CommandResult")) {
+      
+      Object ackObject = command.getClientVariable("ackNumber");
+      Object resultCode = command.getClientVariable("resultCode");
+      System.out.println("ackObject is " + ackObject.getClass().getName());
+      if(ackObject instanceof Integer && resultCode instanceof Integer) {
+        ((ClientThread) actionObject).commandResultReceived((Integer) ackObject,  (Integer) resultCode);
+        ((ClientThread) actionObject).removeCommand(actionSubject);
+      }
+      
     }
   }
 

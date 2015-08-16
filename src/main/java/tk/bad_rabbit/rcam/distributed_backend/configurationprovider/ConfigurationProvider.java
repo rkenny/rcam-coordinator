@@ -41,7 +41,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     
 
     addSystemCommand("Ack", "&command[&ackNumber]", "true", new AckCommandResponseAction());
-    addSystemCommand("CommandResult", "(ackNumber=&ackNumber,resultCode=&resultCode)", "false", new ResultCommandResponseAction());
+    addSystemCommand("CommandResult", "{ackNumber:&ackNumber,resultCode:&resultCode}", "false", new ResultCommandResponseAction());
     
   }
   

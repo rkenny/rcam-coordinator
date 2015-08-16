@@ -44,7 +44,8 @@ public class RunController implements Observer {
    this.commandList = new  ConcurrentHashMap<String, ConcurrentHashMap<Integer, ACommand>>();
   }
   
-  public void commandResultReceived(String server, Integer ackNumber, String resultCode) {
+  public void commandResultReceived(String server, Integer ackNumber, Integer resultCode) {
+    System.out.println("RunController.CommandResultReceived("+server+","+ackNumber+","+resultCode+")");
     commandList.get(server).get(ackNumber).setReturnCode(resultCode);
     commandList.get(server).get(ackNumber).setState(server, new CommandCompletedState());
     

@@ -20,6 +20,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
+import sun.print.resources.serviceui;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
@@ -73,7 +74,7 @@ public class ClientThread implements Runnable, Observer, IClientThread {
     command.setState(getServerString(), new AckedState());
   }
   
-  public void commandResultReceived(int ackNumber, String resultCode) {
+  public void commandResultReceived(Integer ackNumber, Integer resultCode) {
     System.out.println("Command result received for command " + ackNumber);
     this.runController.commandResultReceived(getServerString(), ackNumber, resultCode);
   }
@@ -245,6 +246,7 @@ public class ClientThread implements Runnable, Observer, IClientThread {
   
   public void writeCommandToChannel(SocketChannel selectedChannel, ACommand command) throws IOException {
     ByteBuffer buffer = asciiEncoder.encode(command.asCharBuffer());
+
     while(buffer.hasRemaining()) {
         selectedChannel.write(buffer);
     }    

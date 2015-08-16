@@ -1,23 +1,23 @@
 package tk.bad_rabbit.rcam.spring.commands;
 
-import java.util.List;
-
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-//import tk.bad_rabbit.rcam.app.RunController;
-import tk.bad_rabbit.rcam.distributed_backend.client.IClient;
 import tk.bad_rabbit.rcam.distributed_backend.client.IClientController;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.ReadyToSendState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
-import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
+//import tk.bad_rabbit.rcam.app.RunController;
 
 @Controller
 @Scope("session")
@@ -31,19 +31,25 @@ public class CommandController {
   @Qualifier("commandFactory")
   ICommandFactory commandFactory;
   
-  @RequestMapping(value= "/command/{commandString}", method = RequestMethod.POST)
-  public @ResponseBody String command(@PathVariable("commandString") String commandString) {
+  //@RequestMapping(value= "/command/{commandString}", method = RequestMethod.POST)
+  //public @ResponseBody String command(@PathVariable("commandString") String commandString) {
     
-    ACommand command = commandFactory.createCommand(commandString);
+  //  ACommand command = commandFactory.createCommand(commandString);
+  //  clientController.register(command);
+  //  return "Done";
+  //}
+  
+  @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST, 
+      //produces = MediaType.APPLICATION_JSON_VALUE, 
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ResponseEntity<String> createCommand(@PathVariable String commandType, @RequestBody String commandVariables) {
+    System.out.println("commandType: " + commandType);
+    System.out.println("requestBody: " + commandVariables);
     
-//    for(IClient client : clientController.getClients()) {
-//      command.addObserver(client);
-//    }
-//    command.addObserver(runController);
-    clientController.register(command);
+    clientController.register(commandFactory.createCommand(commandType, new JSONObject(commandVariables)));
     
-    //command.setState(new ReadyToSendState());
-    
-    return "Done";
+    return new ResponseEntity<String>("done",HttpStatus.OK);
+
   }
 }

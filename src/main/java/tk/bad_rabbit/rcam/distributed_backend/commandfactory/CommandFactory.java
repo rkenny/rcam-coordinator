@@ -8,6 +8,7 @@ import java.util.Random;
 
 import javax.annotation.PostConstruct;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,60 +51,94 @@ public class CommandFactory implements ICommandFactory {
         
     
     public ACommand createAckCommand(ACommand command) {
-      return createCommand("Ack(command=" + command.getCommandName() + ",ackNumber="+command.getAckNumber()+")");
+      JSONObject commandVariables = new JSONObject();
+      commandVariables.put("command", command.getCommandName())
+        .put("ackNumber", command.getAckNumber());
+      //return createCommand("Ack(command=" + command.getCommandName() + ",ackNumber="+command.getAckNumber()+")");
+      return createCommand("Ack", commandVariables);
     }
     
     public ACommand createCommand(CharBuffer commandBuffer) {
-      return createCommand(commandBuffer.toString());
-    }
- 
-    public ACommand createCommand(@Value("${commandString}") String commandString) {
-      ACommand command = null;
+      //Ack[29891](command=Record,ackNumber=93531)
+      //CommandResult[38041](ackNumber = 93531,resultCode=0)
       String commandType;
       int commandTypeLength;
+      String commandString = commandBuffer.toString();
+      System.out.println("CommandFactory: Creating " + commandString + " from a charBuffer");
+      commandTypeLength = commandString.indexOf("{") > 0 ? commandString.indexOf("{") : commandString.length();
       
-      commandTypeLength = commandString.indexOf("(") > 0 ? commandString.indexOf("(") : commandString.length();
       commandTypeLength = (commandString.indexOf("[") < commandTypeLength  
-          && commandString.indexOf("[") > 0 )? commandString.indexOf("[") : commandTypeLength;
+          && commandString.indexOf("[") > 0 ) ? commandString.indexOf("[") : commandTypeLength;
       commandType = commandString.substring(0, commandTypeLength).trim();
-      
+        
       Integer commandAckNumber;
-      if(commandString.indexOf("[") > 0 && commandString.indexOf("[") < commandString.indexOf("(") ) {
-        commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
-      } else {
-        commandAckNumber = new Random().nextInt((99999 - 10000) + 1) + 10000;
-      }
+//      if(commandString.indexOf("[") > 0 && commandString.indexOf("[") < commandString.indexOf("(") ) {
+      commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
+//        } 
+//    command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
+      //      commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
+      JSONObject clientVariables = new JSONObject(commandString.substring(commandString.indexOf("{"), commandString.length()));
+      return createCommand(commandType, commandAckNumber, clientVariables);
+      //return null;
+    }
+ 
+    public ACommand createCommand(@Value("${commandType}") String commandType, JSONObject clientVariables) {
+      
+      return createCommand(commandType, new Random().nextInt((99999 - 10000) + 1) + 10000, clientVariables);
+      
+    }
+    
+    public ACommand createCommand(String commandType, Integer ackNumber, JSONObject clientVariables) {
+      ACommand command = null;
       
       if(commandConfigurations.containsKey(commandType)) {
-        command = new Command(commandType, commandAckNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
-            commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
+        command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), clientVariables,
+            commandVariables.get(commandType), serverVariables, 
+            configurationProvider.getCommandResponseAction(commandType));
+      //  command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
+      //      commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
+      
       } 
-      System.out.println("Created command " + commandString);
+      
       return command;
     }
-
-    private Map<String, String> createClientVariablesMap(String commandString) {
-      Map<String, String> clientVariables = new HashMap<String, String>();
-      int variablesSubstringStart = commandString.indexOf("(");
-      int variablesSubstringEnd = commandString.indexOf(")");
-
-      if(variablesSubstringStart > 0 && variablesSubstringEnd > 0 && variablesSubstringEnd <= commandString.length()) {
-        String[] clientVariableArray;
-        if(commandString.indexOf(",") > 0) {
-          clientVariableArray = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd).split(",");
-        } else {
-          clientVariableArray = new String[1];
-          clientVariableArray[0] = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd);
-        }
-        
-        for(String clientVariable : clientVariableArray) {
-          if(clientVariable.indexOf("=") > 0) {
-            String[] variableAndValue = clientVariable.split("=");
-            clientVariables.put(variableAndValue[0], variableAndValue[1]);
-          }
-        }
-      }
+    
+    //public ACommand createCommand(@Value("${commandString}") String commandString) {
+    //  ACommand command = null;
+    //  
       
-      return clientVariables;
-    }   
+      // Record(Duration = 2500)
+      // Map<String, String> variables
+      // ackNumber = null
+      // duration = 2500
+      
+ 
+    
+      
+    //}
+
+//    private Map<String, String> createClientVariablesMap(String commandString) {
+//      Map<String, String> clientVariables = new HashMap<String, String>();
+//      int variablesSubstringStart = commandString.indexOf("(");
+//      int variablesSubstringEnd = commandString.indexOf(")");
+//
+//      if(variablesSubstringStart > 0 && variablesSubstringEnd > 0 && variablesSubstringEnd <= commandString.length()) {
+//        String[] clientVariableArray;
+//        if(commandString.indexOf(",") > 0) {
+//          clientVariableArray = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd).split(",");
+//        } else {
+//          clientVariableArray = new String[1];
+//          clientVariableArray[0] = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd);
+//        }
+//        
+//        for(String clientVariable : clientVariableArray) {
+//          if(clientVariable.indexOf(":") > 0) {
+//            String[] variableAndValue = clientVariable.split(":");
+//            clientVariables.put(variableAndValue[0], variableAndValue[1]);
+//          }
+//        }
+//      }
+//      
+//      return clientVariables;
+//    }   
  }

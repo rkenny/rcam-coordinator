@@ -13,7 +13,7 @@ public interface ICommand {
   public String getCommandName();
   
   public String getCommandVariable(String variableName);
-  public String getClientVariable(String variableName);
+  public Object getClientVariable(String variableName);
   public String getServerVariable(String variableName);
 
   public void performCommandResponseAction(String server, Object actionObject);
@@ -28,8 +28,8 @@ public interface ICommand {
   //public ACommand copy();
   public ICommandState setState(String server, ICommandState state);
   
-  public void setReturnCode(String returnCode);
-  public String getReturnCode();
+  public void setReturnCode(Integer returnCode);
+  public Integer getReturnCode();
 
   public void doAction(Observer actionObject, String server);
   
