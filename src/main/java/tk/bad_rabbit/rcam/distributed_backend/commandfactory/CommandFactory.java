@@ -23,7 +23,7 @@ public class CommandFactory implements ICommandFactory {
 
     Map<String, List<String>> commandConfigurations;
     Map<String, JSONObject> commandVariables;
-    Map<String, String> serverVariables;
+    JSONObject serverVariables;
     
     Random rand;
 
@@ -43,7 +43,7 @@ public class CommandFactory implements ICommandFactory {
     }
     
     public CommandFactory(Map<String, List<String>> commandConfigurations, Map<String,
-        JSONObject> commandVariables, Map<String, String> serverVariables) {
+        JSONObject> commandVariables, JSONObject serverVariables) {
       this.commandConfigurations = commandConfigurations;
       this.commandVariables = commandVariables;
       this.serverVariables = serverVariables;

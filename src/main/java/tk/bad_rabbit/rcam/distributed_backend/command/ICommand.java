@@ -14,7 +14,7 @@ public interface ICommand {
   
   public Object getCommandVariable(String variableName);
   public Object getClientVariable(String variableName);
-  public String getServerVariable(String variableName);
+  public Object getServerVariable(String variableName);
 
   public void performCommandResponseAction(String server, Object actionObject);
 //  public ACommand wasReceived();

@@ -22,7 +22,7 @@ public class Command extends ACommand {
   private Integer commandAckNumber;
   private JSONObject clientVariables;
   private JSONObject commandVariables;
-  private Map<String, String> serverVariables;
+  private JSONObject serverVariables;
   private ICommandResponseAction commandResponseAction;
   
   private volatile Map<String, ICommandState> state;
@@ -47,7 +47,7 @@ public class Command extends ACommand {
   }
   
   public Command(String commandName, Integer commandAckNumber, List<String> commandString, JSONObject clientVariables,
-      JSONObject commandVariables, Map<String, String> serverVariables, ICommandResponseAction commandResponseAction) {
+      JSONObject commandVariables, JSONObject serverVariables, ICommandResponseAction commandResponseAction) {
     this();
     this.commandName = commandName;
     this.commandString = commandString;
@@ -88,7 +88,7 @@ public class Command extends ACommand {
   public Object getClientVariable(String variableName) {
     return this.clientVariables.get(variableName);
   }
-  public String getServerVariable(String variableName) {
+  public Object getServerVariable(String variableName) {
     return this.serverVariables.get(variableName);
   }
   
@@ -149,15 +149,21 @@ public class Command extends ACommand {
     variableIterator = commandVariables.keys();
     while(variableIterator.hasNext()) {
       String key = variableIterator.next();
-      finalCommandString = finalCommandString.replace("$"+key, commandVariables.get(key).toString());
+      finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key).toString());
     }
     //for(String key : commandVariables.keySet()) {
     //  finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key));
     //}
     
-    for(String key : serverVariables.keySet()) {
-      finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key));
+    variableIterator = serverVariables.keys();
+    while(variableIterator.hasNext()) {
+      String key = variableIterator.next();
+      finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key).toString());
     }
+    
+    //for(String key : serverVariables.keySet()) {
+    //  finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key));
+    //}
     
     finalCommandString = finalCommandString.replaceFirst("\\[", "{");
     finalCommandString = finalCommandString.substring(0, finalCommandString.length() - 1).concat("}");

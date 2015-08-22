@@ -26,7 +26,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
 
   Map<String, List<String>> commandConfigurations;
   Map<String, JSONObject> commandVariables;
-  Map<String, String> serverVariables;
+  JSONObject serverVariables;
   Map<String, ICommandResponseAction> commandResponseActions;
   
   
@@ -35,7 +35,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     //clientInfo.put("localhost", new Integer(12345));
     readClientsConfiguration();
     
-    serverVariables = new HashMap<String, String>();
+    serverVariables = new JSONObject();
     commandResponseActions = new HashMap<String, ICommandResponseAction>();
     readServerConfiguration();
     readCommandConfigurations();
@@ -85,15 +85,18 @@ public class ConfigurationProvider implements IConfigurationProvider {
     try {
       reader = new BufferedReader(new FileReader(serverConfigFile));
       String configFileLine;
+      StringBuilder serverConfig = new StringBuilder();
       while((configFileLine = reader.readLine()) != null) {
-        parseServerConfigLine(configFileLine);
+        //parseServerConfigLine(configFileLine);
+        serverConfig.append(configFileLine);
       }
+      serverVariables = new JSONObject(serverConfig.toString());
     } catch(FileNotFoundException e) {
       System.out.println("File not found. Going with defaults");
       serverVariables.put("port", "8080");
     } catch(IOException e) {
       System.out.println("Error setting server configuration. Going with the defaults.");
-      serverVariables.put("port", "12345");
+      serverVariables.put("port", "8080");
     }
     
   }
@@ -180,12 +183,12 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return backendInfo.entrySet().iterator();
   }
   
-  public Map<String, String> getServerVariables() {
+  public JSONObject getServerVariables() {
     return serverVariables;
   }
   
   public int getServerPort() {
-    return Integer.parseInt(serverVariables.get("port"));
+    return new Integer(serverVariables.getInt("port")); //Integer.parseInt(serverVariables.getInt("port"));
   }
 
   public Map<String, List<String>> getCommandConfigurations() {
