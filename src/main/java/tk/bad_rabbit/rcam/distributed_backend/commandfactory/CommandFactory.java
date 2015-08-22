@@ -22,7 +22,7 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 public class CommandFactory implements ICommandFactory {
 
     Map<String, List<String>> commandConfigurations;
-    Map<String, Map<String, String>> commandVariables;
+    Map<String, JSONObject> commandVariables;
     Map<String, String> serverVariables;
     
     Random rand;
@@ -43,7 +43,7 @@ public class CommandFactory implements ICommandFactory {
     }
     
     public CommandFactory(Map<String, List<String>> commandConfigurations, Map<String,
-        Map<String, String>> commandVariables, Map<String, String> serverVariables) {
+        JSONObject> commandVariables, Map<String, String> serverVariables) {
       this.commandConfigurations = commandConfigurations;
       this.commandVariables = commandVariables;
       this.serverVariables = serverVariables;

@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
@@ -24,7 +25,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
   Map<String, Integer> backendInfo;
 
   Map<String, List<String>> commandConfigurations;
-  Map<String, Map<String, String>> commandVariables;
+  Map<String, JSONObject> commandVariables;
   Map<String, String> serverVariables;
   Map<String, ICommandResponseAction> commandResponseActions;
   
@@ -40,7 +41,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     readCommandConfigurations();
     
 
-    addSystemCommand("Ack", "&command[&ackNumber]", "true", new AckCommandResponseAction());
+    addSystemCommand("Ack", "{command:&command,ackNumber:&ackNumber}", "true", new AckCommandResponseAction());
     addSystemCommand("CommandResult", "{ackNumber:&ackNumber,resultCode:&resultCode}", "false", new ResultCommandResponseAction());
     
   }
@@ -49,7 +50,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     List<String> successCommand = new ArrayList<String>();
     successCommand.add(commandString);
     commandConfigurations.put(commandType, successCommand);
-    Map<String, String> successCommandVariables = new HashMap<String, String>();
+    JSONObject successCommandVariables = new JSONObject();
     successCommandVariables.put("ignored", isIgnored);
     commandVariables.put(commandType, successCommandVariables);
     commandResponseActions.put(commandType, commandResponseAction);
@@ -117,7 +118,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   private void readCommandConfigurations() {
     commandConfigurations = new HashMap<String, List<String>>();
-    commandVariables = new HashMap<String, Map<String, String>>();
+    commandVariables = new HashMap<String, JSONObject>();
     File commandConfigFolder = new File("config/commands");
     for(File commandConfigDirectory : commandConfigFolder.listFiles()) {
       if(commandConfigDirectory.isDirectory()) {
@@ -141,17 +142,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
         }
         
         File commandVariableFile = new File(commandConfigDirectory, "vars");
-        Map<String, String> commandVars = new HashMap<String, String>();
+        StringBuilder configFile = new StringBuilder();
         if(commandVariableFile.isFile()) {
           BufferedReader reader;
           try {
             reader = new BufferedReader(new FileReader(commandVariableFile));
             String configFileLine;
             while((configFileLine = reader.readLine()) != null) {
-              if(configFileLine.indexOf("=") > 0) {
-                String[] variableAndValue = configFileLine.split("=");
-                commandVars.put(variableAndValue[0], variableAndValue[1]);
-              }
+              configFile.append(configFileLine);
             }
             reader.close();
           } catch (FileNotFoundException e) {
@@ -159,14 +157,12 @@ public class ConfigurationProvider implements IConfigurationProvider {
           } catch (IOException e) {
             e.printStackTrace();
           }
+          commandVariables.put(commandConfigDirectory.getName(), new JSONObject(configFile.toString()));
         }
         
         commandConfigurations.put(commandConfigDirectory.getName(), commandArgs);
         commandResponseActions.put(commandConfigDirectory.getName(), new DefaultCommandResponseAction());
-        commandVariables.put(commandConfigDirectory.getName(), commandVars);
       }
-      
-           
     }
   }
   
@@ -196,7 +192,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return commandConfigurations;
   }
   
-  public Map<String, Map<String, String>> getCommandVariables() {
+  public Map<String, JSONObject> getCommandVariables() {
     return commandVariables;
   }
 

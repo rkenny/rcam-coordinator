@@ -21,7 +21,7 @@ public class Command extends ACommand {
   private String commandName;
   private Integer commandAckNumber;
   private JSONObject clientVariables;
-  private Map<String, String> commandVariables;
+  private JSONObject commandVariables;
   private Map<String, String> serverVariables;
   private ICommandResponseAction commandResponseAction;
   
@@ -47,7 +47,7 @@ public class Command extends ACommand {
   }
   
   public Command(String commandName, Integer commandAckNumber, List<String> commandString, JSONObject clientVariables,
-      Map<String, String> commandVariables, Map<String, String> serverVariables, ICommandResponseAction commandResponseAction) {
+      JSONObject commandVariables, Map<String, String> serverVariables, ICommandResponseAction commandResponseAction) {
     this();
     this.commandName = commandName;
     this.commandString = commandString;
@@ -82,7 +82,7 @@ public class Command extends ACommand {
 //    return copiedCommand;
 //  }
   
-  public String getCommandVariable(String variableName) {
+  public Object getCommandVariable(String variableName) {
     return this.commandVariables.get(variableName);
   }
   public Object getClientVariable(String variableName) {
@@ -140,18 +140,25 @@ public class Command extends ACommand {
   public String finalizeCommandString() {
     String finalCommandString = commandString.toString();
     System.out.println(clientVariables);
-    Iterator<String> clientVariableIterator = clientVariables.keys();
-    while(clientVariableIterator.hasNext()) {
-      String key = clientVariableIterator.next();
+    Iterator<String> variableIterator = clientVariables.keys();
+    while(variableIterator.hasNext()) {
+      String key = variableIterator.next();
       finalCommandString = finalCommandString.replace("&"+key, clientVariables.get(key).toString());
     }
 
-    for(String key : commandVariables.keySet()) {
-      finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key));
+    variableIterator = commandVariables.keys();
+    while(variableIterator.hasNext()) {
+      String key = variableIterator.next();
+      finalCommandString = finalCommandString.replace("$"+key, commandVariables.get(key).toString());
     }
+    //for(String key : commandVariables.keySet()) {
+    //  finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key));
+    //}
+    
     for(String key : serverVariables.keySet()) {
       finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key));
     }
+    
     finalCommandString = finalCommandString.replaceFirst("\\[", "{");
     finalCommandString = finalCommandString.substring(0, finalCommandString.length() - 1).concat("}");
 

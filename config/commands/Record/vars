@@ -1,2 +1,4 @@
-videoSource=yeah
-vlcPath=ohYeah
+{
+  "videoSource":"yeah",
+  "vlcPath":"ohYeah"
+}

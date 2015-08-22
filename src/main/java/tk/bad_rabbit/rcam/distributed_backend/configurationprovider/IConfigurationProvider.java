@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import tk.bad_rabbit.rcam.app.Pair;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
+import org.json.JSONObject;
+
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 
 public interface IConfigurationProvider {
@@ -20,7 +20,7 @@ public interface IConfigurationProvider {
   Iterator<Entry<String, Integer>> getBackendMapIterator();
   
   public Map<String, List<String>> getCommandConfigurations();
-  public Map<String, Map<String, String>> getCommandVariables();
+  public Map<String, JSONObject> getCommandVariables();
   public Map<String, String> getServerVariables();
   public List<String> getBackendList();
 
