@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +42,19 @@ public class ConfigurationProvider implements IConfigurationProvider {
     readCommandConfigurations();
     
     JSONObject ackConfiguration = new JSONObject();
-    
-    ackConfiguration.put("clientVars", new String[]{"ackNumber", "command"});
+    JSONArray ackClientVars = new JSONArray();
+    ackClientVars.put("ackNumber");
+    ackClientVars.put("command");
+    ackConfiguration.put("clientVars", ackClientVars);
     ackConfiguration.put("commandVars", new JSONObject("{ignored: true}"));
     addSystemCommand("Ack", ackConfiguration, new AckCommandResponseAction());
     
+    
     JSONObject commandResultConfiguration = new JSONObject();
-    commandResultConfiguration.put("clientVars", new String[]{"ackNumber", "resultCode"});
+    JSONArray resultClientVars = new JSONArray();
+    resultClientVars.put("ackNumber");
+    resultClientVars.put("resultCode");
+    commandResultConfiguration.put("clientVars", resultClientVars);
     commandResultConfiguration.put("commandVars", new JSONObject("{ignored: false}"));
     addSystemCommand("CommandResult", commandResultConfiguration, new ResultCommandResponseAction());
   }
@@ -113,6 +120,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   private void readCommandConfigurations() {
     commandConfigurations = new HashMap<String, JSONObject>();
+    //commandVariables = new HashMap<String, JSONObject>();
     File commandConfigFolder = new File("config/commands");
     for(File commandConfigDirectory : commandConfigFolder.listFiles()) {
       if(commandConfigDirectory.isDirectory()) {
@@ -134,7 +142,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
             e.printStackTrace();
           }
         }
-        commandConfigurations.put(commandConfigDirectory.getName(), new JSONObject(commandArgs.toString()));
         
         commandResponseActions.put(commandConfigDirectory.getName(), new DefaultCommandResponseAction());
       }
@@ -165,6 +172,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
 
   public Map<String, JSONObject> getCommandConfigurations() {
     return commandConfigurations;
+  }
+  
+  public String getCommandConfigurationPath() {
+    return "config/commands";
+  }
+  
+  public JSONObject getCommandConfiguration(String commandType) {
+    return this.commandConfigurations.get(commandType);
   }
 
   public List<String> getBackendList() {
