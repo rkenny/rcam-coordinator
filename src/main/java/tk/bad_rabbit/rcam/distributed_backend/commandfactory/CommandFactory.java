@@ -21,7 +21,7 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 @Service(value="commandFactory")
 public class CommandFactory implements ICommandFactory {
 
-    Map<String, List<String>> commandConfigurations;
+    Map<String, JSONObject> commandConfigurations;
     Map<String, JSONObject> commandVariables;
     JSONObject serverVariables;
     
@@ -42,7 +42,7 @@ public class CommandFactory implements ICommandFactory {
       rand = new Random();
     }
     
-    public CommandFactory(Map<String, List<String>> commandConfigurations, Map<String,
+    public CommandFactory(Map<String, JSONObject> commandConfigurations, Map<String,
         JSONObject> commandVariables, JSONObject serverVariables) {
       this.commandConfigurations = commandConfigurations;
       this.commandVariables = commandVariables;
@@ -59,8 +59,6 @@ public class CommandFactory implements ICommandFactory {
     }
     
     public ACommand createCommand(CharBuffer commandBuffer) {
-      //Ack[29891](command=Record,ackNumber=93531)
-      //CommandResult[38041](ackNumber = 93531,resultCode=0)
       String commandType;
       int commandTypeLength;
       String commandString = commandBuffer.toString();
@@ -72,27 +70,22 @@ public class CommandFactory implements ICommandFactory {
       commandType = commandString.substring(0, commandTypeLength).trim();
         
       Integer commandAckNumber;
-//      if(commandString.indexOf("[") > 0 && commandString.indexOf("[") < commandString.indexOf("(") ) {
+
       commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
-//        } 
-//    command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
-      //      commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
+
       JSONObject clientVariables = new JSONObject(commandString.substring(commandString.indexOf("{"), commandString.length()));
       return createCommand(commandType, commandAckNumber, clientVariables);
-      //return null;
     }
  
     public ACommand createCommand(@Value("${commandType}") String commandType, JSONObject clientVariables) {
-      
       return createCommand(commandType, new Random().nextInt((99999 - 10000) + 1) + 10000, clientVariables);
-      
     }
     
     public ACommand createCommand(String commandType, Integer ackNumber, JSONObject clientVariables) {
       ACommand command = null;
       
       if(commandConfigurations.containsKey(commandType)) {
-        command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), clientVariables,
+        command = new Command(commandType, ackNumber, commandConfigurations.get(commandType).get("commandString").toString(), clientVariables,
             commandVariables.get(commandType), serverVariables, 
             configurationProvider.getCommandResponseAction(commandType));
       //  command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
@@ -102,43 +95,5 @@ public class CommandFactory implements ICommandFactory {
       
       return command;
     }
-    
-    //public ACommand createCommand(@Value("${commandString}") String commandString) {
-    //  ACommand command = null;
-    //  
-      
-      // Record(Duration = 2500)
-      // Map<String, String> variables
-      // ackNumber = null
-      // duration = 2500
-      
- 
-    
-      
-    //}
 
-//    private Map<String, String> createClientVariablesMap(String commandString) {
-//      Map<String, String> clientVariables = new HashMap<String, String>();
-//      int variablesSubstringStart = commandString.indexOf("(");
-//      int variablesSubstringEnd = commandString.indexOf(")");
-//
-//      if(variablesSubstringStart > 0 && variablesSubstringEnd > 0 && variablesSubstringEnd <= commandString.length()) {
-//        String[] clientVariableArray;
-//        if(commandString.indexOf(",") > 0) {
-//          clientVariableArray = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd).split(",");
-//        } else {
-//          clientVariableArray = new String[1];
-//          clientVariableArray[0] = commandString.substring(variablesSubstringStart+1, variablesSubstringEnd);
-//        }
-//        
-//        for(String clientVariable : clientVariableArray) {
-//          if(clientVariable.indexOf(":") > 0) {
-//            String[] variableAndValue = clientVariable.split(":");
-//            clientVariables.put(variableAndValue[0], variableAndValue[1]);
-//          }
-//        }
-//      }
-//      
-//      return clientVariables;
-//    }   
  }

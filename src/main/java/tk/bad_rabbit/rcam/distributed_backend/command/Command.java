@@ -17,7 +17,7 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduc
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 public class Command extends ACommand {
-  private List<String> commandString;
+  private String commandString;
   private String commandName;
   private Integer commandAckNumber;
   private JSONObject clientVariables;
@@ -46,7 +46,7 @@ public class Command extends ACommand {
     this.state = new HashMap<String, ICommandState>();
   }
   
-  public Command(String commandName, Integer commandAckNumber, List<String> commandString, JSONObject clientVariables,
+  public Command(String commandName, Integer commandAckNumber, String commandString, JSONObject clientVariables,
       JSONObject commandVariables, JSONObject serverVariables, ICommandResponseAction commandResponseAction) {
     this();
     this.commandName = commandName;
@@ -58,29 +58,11 @@ public class Command extends ACommand {
     
     this.commandResponseAction = commandResponseAction;
     
+    
+    
     System.out.println("Created command " + commandName + "[" + commandAckNumber + "]" + clientVariables);
+    System.out.println("The commandString is " + commandString.toString());
   }
-  
-//  public Command(String commandName, Integer commandAckNumber, List<String> commandString, Map<String, String> clientVariables,
-//      Map<String, String> commandVariables, Map<String, String> serverVariables, ICommandResponseAction commandResponseAction) {
-//    this();
-//    this.commandName = commandName;
-//    this.commandString = commandString;
-//    this.commandAckNumber = commandAckNumber;
-//    this.clientVariables = clientVariables;
-//    this.commandVariables = commandVariables;
-//    this.serverVariables = serverVariables;
-//    
-//    this.commandResponseAction = commandResponseAction;
-//  }
-  
-//  public ACommand copy() {
-//    ACommand copiedCommand;
-//    copiedCommand = new Command(this.commandName, this.commandAckNumber, this.commandString, this.clientVariables,
-//        this.commandVariables, this.serverVariables, this.commandResponseAction);
-//    copiedCommand.setState(this.state);
-//    return copiedCommand;
-//  }
   
   public Object getCommandVariable(String variableName) {
     return this.commandVariables.get(variableName);
@@ -140,6 +122,7 @@ public class Command extends ACommand {
   public String finalizeCommandString() {
     String finalCommandString = commandString.toString();
     System.out.println(clientVariables);
+    System.out.println("finalCommandString is " + finalCommandString + " before the replaces");
     Iterator<String> variableIterator = clientVariables.keys();
     while(variableIterator.hasNext()) {
       String key = variableIterator.next();
@@ -151,23 +134,16 @@ public class Command extends ACommand {
       String key = variableIterator.next();
       finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key).toString());
     }
-    //for(String key : commandVariables.keySet()) {
-    //  finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key));
-    //}
     
     variableIterator = serverVariables.keys();
     while(variableIterator.hasNext()) {
       String key = variableIterator.next();
       finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key).toString());
     }
-    
-    //for(String key : serverVariables.keySet()) {
-    //  finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key));
-    //}
-    
-    finalCommandString = finalCommandString.replaceFirst("\\[", "{");
-    finalCommandString = finalCommandString.substring(0, finalCommandString.length() - 1).concat("}");
 
+    finalCommandString = "{".concat(finalCommandString).concat("}");
+    
+    System.out.println("FinalCommandString after is " + finalCommandString + " after the replaces");
     return finalCommandString;
   }
 

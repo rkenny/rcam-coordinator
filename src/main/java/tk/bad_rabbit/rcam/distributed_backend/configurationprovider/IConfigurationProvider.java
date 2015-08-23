@@ -19,7 +19,7 @@ public interface IConfigurationProvider {
 
   Iterator<Entry<String, Integer>> getBackendMapIterator();
   
-  public Map<String, List<String>> getCommandConfigurations();
+  public Map<String, JSONObject> getCommandConfigurations();
   public Map<String, JSONObject> getCommandVariables();
   public JSONObject getServerVariables();
   public List<String> getBackendList();

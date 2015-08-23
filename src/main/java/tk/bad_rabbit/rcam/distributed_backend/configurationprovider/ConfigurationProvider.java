@@ -24,7 +24,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
 
   Map<String, Integer> backendInfo;
 
-  Map<String, List<String>> commandConfigurations;
+  Map<String, JSONObject> commandConfigurations;
   Map<String, JSONObject> commandVariables;
   JSONObject serverVariables;
   Map<String, ICommandResponseAction> commandResponseActions;
@@ -47,8 +47,8 @@ public class ConfigurationProvider implements IConfigurationProvider {
   }
   
   private void addSystemCommand(String commandType, String commandString, String isIgnored, ICommandResponseAction commandResponseAction) {
-    List<String> successCommand = new ArrayList<String>();
-    successCommand.add(commandString);
+    JSONObject successCommand = new JSONObject();
+    successCommand.put("commandString", commandString);
     commandConfigurations.put(commandType, successCommand);
     JSONObject successCommandVariables = new JSONObject();
     successCommandVariables.put("ignored", isIgnored);
@@ -111,30 +111,22 @@ public class ConfigurationProvider implements IConfigurationProvider {
     
   }
   
-  private void parseServerConfigLine(String configFileLine) {
-    String[] variableAndValue;
-    if(configFileLine.indexOf("=") > 0) {
-      variableAndValue = configFileLine.split("=");
-      serverVariables.put(variableAndValue[0], variableAndValue[1]);
-    }  
-  }
-  
   private void readCommandConfigurations() {
-    commandConfigurations = new HashMap<String, List<String>>();
+    commandConfigurations = new HashMap<String, JSONObject>();
     commandVariables = new HashMap<String, JSONObject>();
     File commandConfigFolder = new File("config/commands");
     for(File commandConfigDirectory : commandConfigFolder.listFiles()) {
       if(commandConfigDirectory.isDirectory()) {
         File commandConfigFile = new File(commandConfigDirectory, "command");
         
-        List<String> commandArgs = new ArrayList<String>();
+        StringBuilder commandArgs = new StringBuilder();
         if(commandConfigFile.isFile()) {
           BufferedReader reader;
           try {
             reader = new BufferedReader(new FileReader(commandConfigFile));
             String configFileLine;
             while((configFileLine = reader.readLine()) != null) {
-              commandArgs.add(configFileLine);
+              commandArgs.append(configFileLine);
             }
             reader.close();
           } catch (FileNotFoundException e) {
@@ -143,6 +135,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
             e.printStackTrace();
           }
         }
+        commandConfigurations.put(commandConfigDirectory.getName(), new JSONObject(commandArgs.toString()));
         
         File commandVariableFile = new File(commandConfigDirectory, "vars");
         StringBuilder configFile = new StringBuilder();
@@ -160,10 +153,10 @@ public class ConfigurationProvider implements IConfigurationProvider {
           } catch (IOException e) {
             e.printStackTrace();
           }
-          commandVariables.put(commandConfigDirectory.getName(), new JSONObject(configFile.toString()));
+          
         }
+        commandVariables.put(commandConfigDirectory.getName(), new JSONObject(configFile.toString()));
         
-        commandConfigurations.put(commandConfigDirectory.getName(), commandArgs);
         commandResponseActions.put(commandConfigDirectory.getName(), new DefaultCommandResponseAction());
       }
     }
@@ -191,7 +184,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return new Integer(serverVariables.getInt("port")); //Integer.parseInt(serverVariables.getInt("port"));
   }
 
-  public Map<String, List<String>> getCommandConfigurations() {
+  public Map<String, JSONObject> getCommandConfigurations() {
     return commandConfigurations;
   }
   

@@ -43,11 +43,11 @@ public class CommandController {
       //produces = MediaType.APPLICATION_JSON_VALUE, 
       consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ResponseEntity<String> createCommand(@PathVariable String commandType, @RequestBody String commandVariables) {
+  public ResponseEntity<String> createCommand(@PathVariable String commandType, @RequestBody String clientVariables) {
     System.out.println("commandType: " + commandType);
-    System.out.println("requestBody: " + commandVariables);
+    System.out.println("requestBody: " + clientVariables);
     
-    clientController.register(commandFactory.createCommand(commandType, new JSONObject(commandVariables)));
+    clientController.register(commandFactory.createCommand(commandType, new JSONObject(clientVariables)));
     
     return new ResponseEntity<String>("done",HttpStatus.OK);
 
