@@ -1,3 +1,6 @@
 {
-  "commandString":"user:&user"
+  "clientVars":["user"],
+  "commandVars":{"videoSource":"ohYeah", "vlcPath":"somewhere"},
+  "OldCommandString":"user:&user",
+  "reductionCommand":"thisReducesRecord"
 }

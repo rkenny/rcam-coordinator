@@ -12,7 +12,7 @@ public interface ICommand {
   public Integer getAckNumber();
   public String getCommandName();
   
-  public Object getCommandVariable(String variableName);
+  //public Object getCommandVariable(String variableName);
   public Object getClientVariable(String variableName);
   public Object getServerVariable(String variableName);
 

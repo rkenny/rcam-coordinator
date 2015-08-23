@@ -25,7 +25,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
   Map<String, Integer> backendInfo;
 
   Map<String, JSONObject> commandConfigurations;
-  Map<String, JSONObject> commandVariables;
+  //Map<String, JSONObject> commandVariables;
   JSONObject serverVariables;
   Map<String, ICommandResponseAction> commandResponseActions;
   
@@ -40,23 +40,23 @@ public class ConfigurationProvider implements IConfigurationProvider {
     readServerConfiguration();
     readCommandConfigurations();
     
-
-    addSystemCommand("Ack", "{command:&command,ackNumber:&ackNumber}", "true", new AckCommandResponseAction());
-    addSystemCommand("CommandResult", "{ackNumber:&ackNumber,resultCode:&resultCode}", "false", new ResultCommandResponseAction());
+    JSONObject ackConfiguration = new JSONObject();
     
+    ackConfiguration.put("clientVars", new String[]{"ackNumber", "command"});
+    ackConfiguration.put("commandVars", new JSONObject("{ignored: true}"));
+    addSystemCommand("Ack", ackConfiguration, new AckCommandResponseAction());
+    
+    JSONObject commandResultConfiguration = new JSONObject();
+    commandResultConfiguration.put("clientVars", new String[]{"ackNumber", "resultCode"});
+    commandResultConfiguration.put("commandVars", new JSONObject("{ignored: false}"));
+    addSystemCommand("CommandResult", commandResultConfiguration, new ResultCommandResponseAction());
   }
   
-  private void addSystemCommand(String commandType, String commandString, String isIgnored, ICommandResponseAction commandResponseAction) {
-    JSONObject successCommand = new JSONObject();
-    successCommand.put("commandString", commandString);
-    commandConfigurations.put(commandType, successCommand);
-    JSONObject successCommandVariables = new JSONObject();
-    successCommandVariables.put("ignored", isIgnored);
-    commandVariables.put(commandType, successCommandVariables);
+  private void addSystemCommand(String commandType, JSONObject commandConfiguration, ICommandResponseAction commandResponseAction) {
+    commandConfigurations.put(commandType, commandConfiguration);
     commandResponseActions.put(commandType, commandResponseAction);
   }
-
-   
+     
   private void readClientsConfiguration() {
     backendInfo = new HashMap<String, Integer>();
     File clientsConfigFile = new File("config/backends.conf");
@@ -113,7 +113,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   private void readCommandConfigurations() {
     commandConfigurations = new HashMap<String, JSONObject>();
-    commandVariables = new HashMap<String, JSONObject>();
     File commandConfigFolder = new File("config/commands");
     for(File commandConfigDirectory : commandConfigFolder.listFiles()) {
       if(commandConfigDirectory.isDirectory()) {
@@ -136,26 +135,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
           }
         }
         commandConfigurations.put(commandConfigDirectory.getName(), new JSONObject(commandArgs.toString()));
-        
-        File commandVariableFile = new File(commandConfigDirectory, "vars");
-        StringBuilder configFile = new StringBuilder();
-        if(commandVariableFile.isFile()) {
-          BufferedReader reader;
-          try {
-            reader = new BufferedReader(new FileReader(commandVariableFile));
-            String configFileLine;
-            while((configFileLine = reader.readLine()) != null) {
-              configFile.append(configFileLine);
-            }
-            reader.close();
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-          
-        }
-        commandVariables.put(commandConfigDirectory.getName(), new JSONObject(configFile.toString()));
         
         commandResponseActions.put(commandConfigDirectory.getName(), new DefaultCommandResponseAction());
       }
@@ -186,10 +165,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
 
   public Map<String, JSONObject> getCommandConfigurations() {
     return commandConfigurations;
-  }
-  
-  public Map<String, JSONObject> getCommandVariables() {
-    return commandVariables;
   }
 
   public List<String> getBackendList() {

@@ -22,7 +22,7 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 public class CommandFactory implements ICommandFactory {
 
     Map<String, JSONObject> commandConfigurations;
-    Map<String, JSONObject> commandVariables;
+    //Map<String, JSONObject> commandVariables;
     JSONObject serverVariables;
     
     Random rand;
@@ -37,15 +37,14 @@ public class CommandFactory implements ICommandFactory {
     @PostConstruct
     private void initializeCommandFactory() {
       this.commandConfigurations = configurationProvider.getCommandConfigurations();
-      this.commandVariables = configurationProvider.getCommandVariables();
+      //this.commandVariables = configurationProvider.getCommandVariables();
       this.serverVariables = configurationProvider.getServerVariables();
       rand = new Random();
     }
     
-    public CommandFactory(Map<String, JSONObject> commandConfigurations, Map<String,
-        JSONObject> commandVariables, JSONObject serverVariables) {
+    public CommandFactory(Map<String, JSONObject> commandConfigurations,  JSONObject serverVariables) {
       this.commandConfigurations = commandConfigurations;
-      this.commandVariables = commandVariables;
+      //this.commandVariables = commandVariables;
       this.serverVariables = serverVariables;
     }
         
@@ -85,9 +84,8 @@ public class CommandFactory implements ICommandFactory {
       ACommand command = null;
       
       if(commandConfigurations.containsKey(commandType)) {
-        command = new Command(commandType, ackNumber, commandConfigurations.get(commandType).get("commandString").toString(), clientVariables,
-            commandVariables.get(commandType), serverVariables, 
-            configurationProvider.getCommandResponseAction(commandType));
+        command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), clientVariables,
+            serverVariables, configurationProvider.getCommandResponseAction(commandType));
       //  command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
       //      commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
       
