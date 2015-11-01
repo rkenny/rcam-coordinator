@@ -12,7 +12,8 @@ public class DisconnectedClientState extends AClientState {
     System.out.println("Entered the DisconnectedClientState");
     
     System.out.println("Trying to change the state of " + ((ACommand) observingCommand).getAckNumber());
-    ((ACommand) observingCommand).setState(actionClientThread.getServerString(), new ErrorCommandState());
+    //((ACommand) observingCommand).setState(actionClientThread.getServerString(), new ErrorCommandState());
+    ((ACommand) observingCommand).setErrorState();
     System.out.println("Succeeded in setting the state of " + ((ACommand) observingCommand).getAckNumber());
     
   }

@@ -86,16 +86,24 @@ public class Command extends ACommand {
   
   
   public synchronized ICommandState setState(String server, ICommandState state) {
-    System.out.println("Trying to change the state for command " + getAckNumber() + " on " + server + " to " + state.getClass().getSimpleName());
-    this.state.put(server,  state);
+    if(this.state.get(server) == null || !this.state.get(server).equals(new ErrorCommandState()) )  { 
     
-    Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
-    Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
+      System.out.println("Trying to change the state for command " + getAckNumber() + " on " + server + " to " + state.getClass().getSimpleName());
+      this.state.put(server,  state);
+      
+      Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
+      Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
+      
+      setChanged();
+      notifyObservers(commandDetails);
+      
     
-    setChanged();
-    notifyObservers(commandDetails);
-    
-    return state;
+    }
+    return this.state.get(server);
+  }
+  
+  public Boolean stateEquals(String server, ICommandState comparisonState) {
+    return this.state.get(server).equals(comparisonState);
   }
   
   public synchronized void setErrorState() {
@@ -106,7 +114,10 @@ public class Command extends ACommand {
       System.out.println("Going to put " + server + " " + getAckNumber() + " into an error state");
       System.out.println(ErrorCommandState.class.getSimpleName());
       System.out.println(this.state.get(server).getClass().getSimpleName());
-      
+      this.setState(server, new ErrorCommandState());
+      //if(!this.state.get(server).equals(new ErrorCommandState())) {
+      //  this.state.put(server, new ErrorCommandState());
+      //}
     }
   }
   

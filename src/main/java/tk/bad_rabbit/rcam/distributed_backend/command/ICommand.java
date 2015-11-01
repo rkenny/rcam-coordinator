@@ -30,6 +30,7 @@ public interface ICommand  {
   
   //public ACommand copy();
   public ICommandState setState(String server, ICommandState state);
+  public Boolean stateEquals(String server, ICommandState comparisonState);
   public void setErrorState();
   
   public void setReturnCode(Integer returnCode);
@@ -38,5 +39,6 @@ public interface ICommand  {
   public void doAction(Observer actionObject, String server);
   
   public Boolean isReadyToReduce();
+  
   public Callable<Pair<Integer, Integer>> reduce();
 }

@@ -6,10 +6,18 @@ import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 
 public abstract class ACommandState implements ICommandState {
 
-
+  @Override
+  public boolean equals(Object comparisonState) {
+    if(comparisonState instanceof ICommandState) {
+      System.out.println("ACommmandState.equals(): Comparing " + getClass().getSimpleName() + " to " + ((ACommandState) comparisonState).getClass().getSimpleName());
+      return (getClass().getSimpleName().equals(comparisonState.getClass().getSimpleName()));  
+    }
+    System.out.println("ACommmandState.equals(): Returning false");
+    return false;
+  }  
+  
   public Boolean typeEquals(ICommandState comparisonState) {
-    System.out.println("Comparing " + this.getClass().getSimpleName() + " to " + comparisonState.getClass().getSimpleName());
-    return (this.getClass().getSimpleName().equals(comparisonState.getClass().getSimpleName()));
+    return this.equals(comparisonState);
   }
 
 }

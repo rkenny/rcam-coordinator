@@ -4,7 +4,6 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,8 +21,8 @@ import org.springframework.stereotype.Controller;
 import tk.bad_rabbit.rcam.app.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandCompletedState;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
@@ -46,10 +45,17 @@ public class RunController implements Observer {
   
   public void commandResultReceived(String server, Integer ackNumber, Integer resultCode) {
     System.out.println("RunController.CommandResultReceived("+server+","+ackNumber+","+resultCode+")");
-    commandList.get(server).get(ackNumber).setReturnCode(resultCode);
-    commandList.get(server).get(ackNumber).setState(server, new CommandCompletedState());
+    if(!(commandList.get(server) == null) && 
+        !(commandList.get(server).get(ackNumber) == null) && 
+        !(commandList.get(server).get(ackNumber).stateEquals(server, new ErrorCommandState()))) { 
+      commandList.get(server).get(ackNumber).setReturnCode(resultCode);
+      commandList.get(server).get(ackNumber).setState(server, new CommandCompletedState());
+      
+      System.out.println("Command completed state reached");
+    } else {
+      System.out.println("Command is in error state.");
+    }
     
-    System.out.println("Command completed state reached");
   }
   
   public void readyToReduce(String server, ACommand command) {
@@ -68,6 +74,7 @@ public class RunController implements Observer {
   
   public void removeCommand(String server, ACommand command) {
     commandList.get(server).remove(command.getAckNumber());
+    System.out.println("Removed command " + command.getAckNumber() + " from server " + server);
     command = null;
   }
   
@@ -86,10 +93,13 @@ public class RunController implements Observer {
   public void update(Observable updatedCommand, Object arg) {
 
     synchronized(updatedCommand) {
+      
+      
       System.out.println("The run controller observed a change in " + ((ACommand) updatedCommand).getAckNumber());
       if(arg instanceof AbstractMap.Entry) {
         Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandDetails = (Map.Entry<ACommand, Map.Entry<String, ICommandState>>) arg;
         String server = commandDetails.getValue().getKey();
+        
         if(!commandList.containsKey(server)) {
           ConcurrentHashMap<Integer, ACommand> newCommandEntry = new ConcurrentHashMap<Integer, ACommand>();
           commandList.put(server,  newCommandEntry);
@@ -98,6 +108,10 @@ public class RunController implements Observer {
         
         if(!commandList.get(server).containsKey(((ACommand) updatedCommand).getAckNumber())) {
           commandList.get(server).put(((ACommand) updatedCommand).getAckNumber(), (ACommand) updatedCommand);
+        }
+        
+        if(((ACommand) updatedCommand).stateEquals(server, new ErrorCommandState())) {
+          removeCommand(server, (ACommand) updatedCommand);
         }
       }
 
