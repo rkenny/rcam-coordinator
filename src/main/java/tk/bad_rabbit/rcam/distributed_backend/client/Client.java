@@ -2,6 +2,7 @@ package tk.bad_rabbit.rcam.distributed_backend.client;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import tk.bad_rabbit.rcam.distributed_backend.client.states.AClientState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.AwaitingAckState;
@@ -12,12 +13,25 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class Client implements IClient  {
-
+  ICommandFactory commandFactory;
+  IConfigurationProvider configurationProvider;
+  
+  RunController runController;
+  ClientThread newClientThread;
+  ConcurrentLinkedQueue<ACommand> commandExchangeQueue;
   String remoteAddress;
   int remotePort;
   
-  public void observeCommand(ACommand command) {
-    newClientThread.observeCommand(command);
+  public synchronized AClientState setState(AClientState state) {
+    this.newClientThread.setState(state);
+    return state;
+  }
+  
+  public synchronized void observeCommand(ACommand command) {
+    newClientThread.addObserver(command);
+    command.addObserver(newClientThread);
+    
+    System.out.println("Command " + command.getAckNumber() +  " and ClientThread" + newClientThread.getServerString() + " are now observing each other");
   }
 
   public String getServerString() {
@@ -48,16 +62,6 @@ public class Client implements IClient  {
   public void setPort(int remotePort) {
     this.remotePort = remotePort;
   }
-  
-  
-  ICommandFactory commandFactory;
-  
-  IConfigurationProvider configurationProvider;
-  
-  RunController runController;
-  ClientThread newClientThread;
-  ConcurrentLinkedQueue<ACommand> commandExchangeQueue;
-
   
   public Client() {
     this.commandExchangeQueue = new ConcurrentLinkedQueue<ACommand>();

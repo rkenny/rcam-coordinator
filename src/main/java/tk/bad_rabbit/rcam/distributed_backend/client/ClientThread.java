@@ -20,7 +20,9 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
-import sun.print.resources.serviceui;
+import tk.bad_rabbit.rcam.distributed_backend.client.states.AClientState;
+import tk.bad_rabbit.rcam.distributed_backend.client.states.ConnectedClientState;
+import tk.bad_rabbit.rcam.distributed_backend.client.states.DisconnectedClientState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.AckedState;
@@ -31,11 +33,11 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.ReceivedCommandStat
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
-public class ClientThread implements Runnable, Observer, IClientThread {
+public class ClientThread extends Observable implements Runnable, Observer, IClientThread {
 
   Thread clientThread;
   //Client thisClient;
-  
+  AClientState clientState;
   SocketChannel socketChannel;
   Selector clientSelector;
   ByteBuffer clientBuffer = ByteBuffer.allocate(1024);
@@ -50,23 +52,56 @@ public class ClientThread implements Runnable, Observer, IClientThread {
   ICommandFactory commandFactory;
   
   public void observeCommand(ACommand command) {
+    System.out.println("ClientThread "  + getServerString() + " is going to begin observing " + command.getAckNumber());
     command.addObserver(this);
+  }
+  
+  
+  public synchronized AClientState setState(AClientState clientState) {
+    System.out.println("Changing the clientThread state");
+    
+    this.clientState = clientState;
+    
+    setChanged();
+    notifyObservers(remoteAddress+":"+remotePort);
+    
+    return clientState;
+  }
+  
+  public synchronized void doAction(Observer actionObserver) {
+    if(actionObserver instanceof ACommand) {
+      System.out.println("ClientThread.doAction() " + getServerString() + " on " + ( (ACommand) actionObserver).getAckNumber());
+    } else {
+      System.out.println("ClientThread.doAction() " + getServerString());
+    }
+    
+    System.out.println("clientState is " + this.clientState.getClass().getSimpleName());
+    this.clientState.doAction(actionObserver, this);
   }
   
   public void update(Observable updatedCommand, Object arg) {
     synchronized(updatedCommand) {
-      if(arg instanceof Map.Entry) {
-        Map.Entry<ACommand, Map.Entry<String, ICommandState>> doesThisWork = (Map.Entry<ACommand, Map.Entry<String, ICommandState>> ) arg;
-        if(this.getServerString().equals(doesThisWork.getValue().getKey())) {
-          System.out.println("Right server. Do the command action.");
-          ((ACommand) updatedCommand).doAction(this, doesThisWork.getValue().getKey());
-        }
+      
+      Set<SelectionKey> selectedKeys = clientSelector.selectedKeys();
+      Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
+      while(keyIterator.hasNext()) {
+        SelectionKey key = keyIterator.next();
+        SocketChannel selectedChannel = (SocketChannel) key.channel();
+        // System.out.println("Is the key valid? " + key.isValid());
       }
       
+      
+      if(arg instanceof Map.Entry) {
+        Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandStateMap = (Map.Entry<ACommand, Map.Entry<String, ICommandState>> ) arg;
+        if(this.getServerString().equals(commandStateMap.getValue().getKey())) {
+          // System.out.println("Right server. Do the command action.");
+          ((ACommand) updatedCommand).doAction(this, commandStateMap.getValue().getKey());
+        }
+      }
     }
   }
   
-  private String getServerString() {
+  public String getServerString() {
     return remoteAddress+":"+remotePort;
   }
   
@@ -159,6 +194,7 @@ public class ClientThread implements Runnable, Observer, IClientThread {
         System.err.println("Error reading from a channel. Closing that channel.");
         command.setState(getServerString(), new ErrorCommandState());
         try {
+          this.setState(new DisconnectedClientState());
           selectedChannel.close();
         } catch (IOException e) {
           System.err.println("Error closing the channel.");
@@ -170,7 +206,6 @@ public class ClientThread implements Runnable, Observer, IClientThread {
   
   private void performPendingSocketIO() throws IOException{
     if(clientSelector.select() == 0) { 
-      //System.out.println("Select returned 0");
       return; 
     }
     
@@ -184,6 +219,7 @@ public class ClientThread implements Runnable, Observer, IClientThread {
       if(key.isConnectable()) {
         selectedChannel.finishConnect();
         selectedChannel.register(clientSelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+        this.setState(new ConnectedClientState());
       }
       
       try {
@@ -191,9 +227,13 @@ public class ClientThread implements Runnable, Observer, IClientThread {
           keyIterator.remove();
           List<CharBuffer> newCommands = readFromChannel(selectedChannel);
           for(CharBuffer newCommand : newCommands) {
+            System.out.println("");
+            System.out.println("Read " + newCommand.toString() + " from " + remoteAddress);
             ACommand processingCommand = commandFactory.createCommand(newCommand);
-          
             if(processingCommand != null) {
+              
+              
+              this.addObserver(processingCommand);
               runController.observeCommand(processingCommand);
               this.observeCommand(processingCommand);
               processingCommand.setState(getServerString(), new ReceivedCommandState());
@@ -202,11 +242,11 @@ public class ClientThread implements Runnable, Observer, IClientThread {
         }
 
       } catch(IOException ioException) {
-        System.err.println("Error reading from a channel. Closing that channel.");
-        //if(null != processingCommand) {
-        //  processingCommand.setState(new ErrorCommandState());
-        //}
+        System.err.println("Error reading from a channel. Closing that channel."
+            + "\n Does this need to set that client's commands to an error state?");
+        
         try {
+          this.setState(new DisconnectedClientState());
           selectedChannel.close();
         } catch (IOException e) {
           System.err.println("Error closing the channel.");
@@ -222,7 +262,9 @@ public class ClientThread implements Runnable, Observer, IClientThread {
     String returnedBuffer;
     ByteBuffer buffer = ByteBuffer.allocate(1024);
     
-    selectedChannel.read(buffer);
+    if(selectedChannel.read(buffer) == -1) {
+      throw new IOException();  
+    }
     buffer.flip();
     
     try {

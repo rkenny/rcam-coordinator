@@ -55,12 +55,12 @@ public class CommandFactory implements ICommandFactory {
     
     public JSONObject createCommandConfiguration(String commandType) {
       StringBuilder commandArgs = new StringBuilder();
-      System.out.println("Got to createCommandConfiguration");
+      // System.out.println("Got to createCommandConfiguration");
       File commandConfigFolder = new File("./config/commands/" + commandType);
-      System.out.println("Looking for a file in ./config/commands/"+ commandType);
+      // System.out.println("Looking for a file in ./config/commands/"+ commandType);
       if(commandConfigFolder.isDirectory()) {
         File commandConfigFile = new File(commandConfigFolder, "command");
-        System.out.println("Found the command file for " + commandType);
+        // System.out.println("Found the command file for " + commandType);
         
         if(commandConfigFile.isFile()) {
           BufferedReader reader;
@@ -82,7 +82,7 @@ public class CommandFactory implements ICommandFactory {
       } else {
         commandArgs.append("{}");
       }
-      System.out.println("commandArgs is " + commandArgs.toString());
+      // System.out.println("commandArgs is " + commandArgs.toString());
       return new JSONObject(commandArgs.toString());
     }
     
@@ -98,6 +98,12 @@ public class CommandFactory implements ICommandFactory {
       String commandType;
       int commandTypeLength;
       String commandString = commandBuffer.toString();
+      
+      if(commandString.length() == 0) {
+        System.out.println("commandFactory.createCommand(): commandString is 0. Returning null.");
+        return null;
+      }
+      
       System.out.println("CommandFactory: Creating " + commandString + " from a charBuffer");
       commandTypeLength = commandString.indexOf("{") > 0 ? commandString.indexOf("{") : commandString.length();
       
@@ -121,13 +127,11 @@ public class CommandFactory implements ICommandFactory {
     public ACommand createCommand(String commandType, Integer ackNumber, JSONObject clientVariables) {
       ACommand command = null;
       
-      //if(commandConfigurations.containsKey(commandType)) {
-        command = new Command(commandType, ackNumber, createCommandConfiguration(commandType), clientVariables,
-            serverVariables, configurationProvider.getCommandResponseAction(commandType));
-      //  command = new Command(commandType, ackNumber, commandConfigurations.get(commandType), createClientVariablesMap(commandString),
-      //      commandVariables.get(commandType), serverVariables, configurationProvider.getCommandResponseAction(commandType));
-      
-      //} 
+      command = new Command(commandType, ackNumber, 
+                  createCommandConfiguration(commandType), clientVariables, serverVariables, 
+                  configurationProvider.getCommandResponseAction(commandType)
+                );
+
       
       return command;
     }

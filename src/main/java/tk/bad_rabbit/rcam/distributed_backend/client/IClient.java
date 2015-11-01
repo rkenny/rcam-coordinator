@@ -1,10 +1,7 @@
 package tk.bad_rabbit.rcam.distributed_backend.client;
 
-import java.util.Map;
-import java.util.Observer;
-
+import tk.bad_rabbit.rcam.distributed_backend.client.states.AClientState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.ICommand;
 
 public interface IClient {
   public void startClientThread();
@@ -14,6 +11,8 @@ public interface IClient {
   
   public void setRemoteAddress(String server);
   public void setPort(int port);
+  
+  public AClientState setState(AClientState clientState);
   
   public String getServerString();
   

@@ -32,7 +32,7 @@ import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 public class RunController implements Observer {
   boolean running;
   ExecutorService commandExecutor;
-  List<Future<Pair<Integer, Integer>>> commandResults; // commands return 'true' for success, 'false' for fail
+  List<Future<Pair<Integer, Integer>>> commandResults;
   ConcurrentHashMap<String, ConcurrentHashMap<Integer, ACommand>> commandList;
   
   
@@ -60,7 +60,7 @@ public class RunController implements Observer {
     
     
     if(command.isReadyToReduce()) {
-       commandExecutor.execute(command.reduce()); 
+       commandExecutor.submit(command.reduce()); 
        command.setState(server, new CommandReducedState());
      }
     
@@ -72,6 +72,7 @@ public class RunController implements Observer {
   }
   
   public void observeCommand(ACommand command) {
+    System.out.println("The run controller is going to begin observing " + command.getAckNumber());
     command.addObserver(this);
   }
   
@@ -85,9 +86,10 @@ public class RunController implements Observer {
   public void update(Observable updatedCommand, Object arg) {
 
     synchronized(updatedCommand) {
+      System.out.println("The run controller observed a change in " + ((ACommand) updatedCommand).getAckNumber());
       if(arg instanceof AbstractMap.Entry) {
-        Map.Entry<ACommand, Map.Entry<String, ICommandState>> doesThisWork = (Map.Entry<ACommand, Map.Entry<String, ICommandState>>) arg;
-        String server = doesThisWork.getValue().getKey();
+        Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandDetails = (Map.Entry<ACommand, Map.Entry<String, ICommandState>>) arg;
+        String server = commandDetails.getValue().getKey();
         if(!commandList.containsKey(server)) {
           ConcurrentHashMap<Integer, ACommand> newCommandEntry = new ConcurrentHashMap<Integer, ACommand>();
           commandList.put(server,  newCommandEntry);

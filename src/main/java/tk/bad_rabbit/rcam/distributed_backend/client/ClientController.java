@@ -61,9 +61,6 @@ public class ClientController implements IClientController {
       runController.observeCommand(command);
       
       command.setState(client.getServerString(), new ReadyToSendState());
-      //command.addObserver(client.getClientThread());
-//      command.addObserver(runController);
-      //client.addOutgoingCommand(command);
     }
   }
   

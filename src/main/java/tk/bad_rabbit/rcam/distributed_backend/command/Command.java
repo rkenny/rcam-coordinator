@@ -1,27 +1,33 @@
 package tk.bad_rabbit.rcam.distributed_backend.command;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.CharBuffer;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
+import tk.bad_rabbit.rcam.app.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
+import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class Command extends ACommand {
-  //private String commandString;
   private String commandName;
   private Integer commandAckNumber;
   private JSONObject clientVariables;
-  //private JSONObject commandVariables;
   private JSONObject commandConfiguration;
   private JSONObject serverVariables;
   private ICommandResponseAction commandResponseAction;
@@ -36,6 +42,15 @@ public class Command extends ACommand {
   
   public Integer getReturnCode() {
     return this.returnCode;
+  }
+ 
+  public synchronized void update(Observable updatedClient, Object serverWithPort) {
+    if(updatedClient instanceof IClientThread) {
+      System.out.println("A command just received notification that a client's state changed " + serverWithPort);
+      System.out.println(state.get(serverWithPort).getClass().getSimpleName().toString());
+      ((IClientThread) updatedClient).doAction(this);      
+    }
+
   }
   
   
@@ -54,20 +69,12 @@ public class Command extends ACommand {
     this.commandConfiguration = commandConfiguration;
     this.commandAckNumber = commandAckNumber;
     this.clientVariables = clientVariables;
-    //this.commandVariables = commandVariables;
     this.serverVariables = serverVariables;
-    
     this.commandResponseAction = commandResponseAction;
     
-    
-    
     System.out.println("Created command " + commandName + "[" + commandAckNumber + "]");
-    //System.out.println("The commandString is " + commandString.toString());
   }
   
-//  public Object getCommandVariable(String variableName) {
-//    return this.commandVariables.get(variableName);
-//  }
   
   public Object getClientVariable(String variableName) {
     return this.clientVariables.get(variableName);
@@ -79,19 +86,32 @@ public class Command extends ACommand {
   
   
   public synchronized ICommandState setState(String server, ICommandState state) {
-  
+    System.out.println("Trying to change the state for command " + getAckNumber() + " on " + server + " to " + state.getClass().getSimpleName());
     this.state.put(server,  state);
     
-    Entry<String, ICommandState> doesThisWork = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
-    Entry<ACommand, Entry<String, ICommandState>> really = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, doesThisWork);
+    Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
+    Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
     
     setChanged();
-    notifyObservers(really);
+    notifyObservers(commandDetails);
     
     return state;
   }
   
-  public void doAction(Observer actionObject, String server) {
+  public synchronized void setErrorState() {
+    Set<Entry<String, ICommandState>> servers = this.state.entrySet();
+    Iterator<Entry<String, ICommandState>> serversIterator = servers.iterator();
+    while(serversIterator.hasNext()) {
+      String server = serversIterator.next().getKey();
+      System.out.println("Going to put " + server + " " + getAckNumber() + " into an error state");
+      System.out.println(ErrorCommandState.class.getSimpleName());
+      System.out.println(this.state.get(server).getClass().getSimpleName());
+      
+    }
+  }
+  
+  public synchronized void doAction(Observer actionObject, String server) {
+    System.out.println("Command.doAction()");
     System.out.println("About to doAction for server " + server + " on command " + getAckNumber() + " with state " + this.state.get(server).getClass().getSimpleName());
     state.get(server).doAction(actionObject, server, this);
   }
@@ -124,8 +144,7 @@ public class Command extends ACommand {
   
   public String finalizeCommandString() {
     StringBuilder finalCommandString = new StringBuilder();
-    //System.out.println(clientVariables);
-    System.out.println("finalCommandString is " + finalCommandString + " before the replaces");
+    // System.out.println("finalCommandString is " + finalCommandString + " before the replaces");
     finalCommandString.append("{");
     if(commandConfiguration.has("clientVars")) {
       for(int i = 0; i < commandConfiguration.getJSONArray("clientVars").length(); i++) {
@@ -134,25 +153,13 @@ public class Command extends ACommand {
         finalCommandString.append(",");
       }
     }
-    //while(variableIterator.hasNext()) {
-    //  String key = variableIterator.next();
-      //finalCommandString = finalCommandString.replace("&"+key, clientVariables.get(key).toString());
-    //  finalCommandString
-    //}
 
     Iterator<String> variableIterator = commandConfiguration.getJSONObject("commandVars").keys();
     while(variableIterator.hasNext()) {
       String key = variableIterator.next();
-      //finalCommandString = finalCommandString.replace("@"+key, commandVariables.get(key).toString());
       finalCommandString.append("\"" + key + "\":\"" + commandConfiguration.getJSONObject("commandVars").get(key).toString()+"\"");
       finalCommandString.append(",");
     }
-    
-    //variableIterator = serverVariables.keys();
-    //while(variableIterator.hasNext()) {
-    //  String key = variableIterator.next();
-    //  finalCommandString = finalCommandString.replace("$"+key, serverVariables.get(key).toString());
-   // }
     
     if(commandConfiguration.has("serverVars")) {
       for(int i = 0; i < commandConfiguration.getJSONArray("serverVars").length(); i++) {
@@ -165,7 +172,7 @@ public class Command extends ACommand {
     finalCommandString.deleteCharAt(finalCommandString.length()-1);
     finalCommandString.append("}");
     
-    System.out.println("FinalCommandString after is " + finalCommandString + " after the replaces");
+    // System.out.println("FinalCommandString after is " + finalCommandString + " after the replaces");
     return finalCommandString.toString();
   }
 
@@ -182,16 +189,53 @@ public class Command extends ACommand {
     return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
   }
   
-  public Runnable reduce() {
-    return new Runnable() {
+  public Callable<Pair<Integer, Integer>> reduce() {
+    final Integer commandAckNumber = this.commandAckNumber;
+    final String[] command = {commandConfiguration.getString("reductionCommand")};
+    class ReductionCommand implements  Callable<Pair<Integer, Integer>> {
 
-      public void run() {
+      public Pair<Integer, Integer> call() throws Exception {
+
         System.out.println("Reducing " + commandName + " by running " + commandConfiguration.get("reductionCommand").toString());
+        
+        System.out.println("Calling command");
+        System.out.println(command);
+        ProcessBuilder pb = new ProcessBuilder(command);
+        
+        
+        //setupEnvironment(pb.environment());
+        
+        Process process = pb.start();
+        System.out.println("started the process");
+        //Read out dir output
+        InputStream is = process.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        String line;
+        System.out.printf("Output of running %s is:\n", Arrays.toString(command));
+        while ((line = br.readLine()) != null) {
+            System.out.println(line);
+        }
+        
 
+        Integer exitValue = null;
+        try {
+          exitValue = process.waitFor();
+          commandConfiguration.put("returnCode", Integer.toString(exitValue));
+          System.out.println(commandConfiguration);
+          System.out.println("\n\nExit Value is " + exitValue);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+         
+        return new Pair<Integer, Integer>(commandAckNumber, exitValue);
+        
       }
-      
-    };
+    }
+    
+    return new ReductionCommand();
   }
 
+ 
 }
 
