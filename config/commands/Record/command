@@ -1,6 +1,6 @@
 {
-  "clientVars":["user", "anotherUser"],
+  "clientVars":["duration"],
   "commandVars":{"videoSource":"ohYeah", "vlcPath":"somewhere"},
-  "OldCommandString":"user:&user",
-  "reductionCommand":"thisReducesRecord"
+  "OldCommandString":"duration:&duration",
+  "reductionCommand":"./config/commands/Record/reduce.sh"
 }
