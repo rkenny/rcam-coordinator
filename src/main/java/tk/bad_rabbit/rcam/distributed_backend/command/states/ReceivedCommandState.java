@@ -9,9 +9,6 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 public class ReceivedCommandState extends ACommandState {
 
   public void doAction(Observer observer, String server, ACommand actionSubject) {
-    //if(observer instanceof RunController) {
-    System.out.println("Trying to perform command response action");
-      ((ACommand) actionSubject).performCommandResponseAction(server, observer);
-    //}
+    ((ACommand) actionSubject).performCommandResponseAction(server, observer);
   }
 }

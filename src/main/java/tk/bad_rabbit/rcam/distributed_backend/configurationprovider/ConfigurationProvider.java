@@ -32,8 +32,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   
   public ConfigurationProvider() {
-    //
-    //clientInfo.put("localhost", new Integer(12345));
     readClientsConfiguration();
     
     serverVariables = new JSONObject();
@@ -94,7 +92,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
   
   
   private void readServerConfiguration() {
-    //serverPort = 12345;
     File serverConfigFile = new File("config/server.conf");
     BufferedReader reader;
     try {
@@ -102,7 +99,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
       String configFileLine;
       StringBuilder serverConfig = new StringBuilder();
       while((configFileLine = reader.readLine()) != null) {
-        //parseServerConfigLine(configFileLine);
         serverConfig.append(configFileLine);
       }
       serverVariables = new JSONObject(serverConfig.toString());
@@ -121,14 +117,12 @@ public class ConfigurationProvider implements IConfigurationProvider {
     if(configFileLine.indexOf(":") > 0) {
       nameAndPort = configFileLine.split(":");
       backendInfo.put(nameAndPort[0], Integer.parseInt(nameAndPort[1]));
-      System.out.println("Added " + nameAndPort[0] + ":" + Integer.parseInt(nameAndPort[1]));
     }
     
   }
   
   private void readCommandConfigurations() {
     commandConfigurations = new HashMap<String, JSONObject>();
-    //commandVariables = new HashMap<String, JSONObject>();
     File commandConfigFolder = new File("config/commands");
     for(File commandConfigDirectory : commandConfigFolder.listFiles()) {
       if(commandConfigDirectory.isDirectory()) {

@@ -44,26 +44,16 @@ public class RunController implements Observer {
   }
   
   public void commandResultReceived(String server, Integer ackNumber, Integer resultCode) {
-    System.out.println("RunController.CommandResultReceived("+server+","+ackNumber+","+resultCode+")");
     if(!(commandList.get(server) == null) && 
         !(commandList.get(server).get(ackNumber) == null) && 
         !(commandList.get(server).get(ackNumber).stateEquals(server, new ErrorCommandState()))) { 
       commandList.get(server).get(ackNumber).setReturnCode(resultCode);
       commandList.get(server).get(ackNumber).setState(server, new CommandCompletedState());
       
-      System.out.println("Command completed state reached");
-    } else {
-      System.out.println("Command is in error state.");
-    }
-    
+    }    
   }
   
   public void readyToReduce(String server, ACommand command) {
-    //check each server for command. If they're all done, reduce it.
-    //for now, though, there's only one command. So, reduce it.
-    System.out.println("need to check if the command is ready to reduce on all servers, then reduce it if it is.");
-    System.out.println("It is command "  + command.getAckNumber());
-    
     
     if(command.isReadyToReduce()) {
        commandExecutor.submit(command.reduce()); 
@@ -74,12 +64,10 @@ public class RunController implements Observer {
   
   public void removeCommand(String server, ACommand command) {
     commandList.get(server).remove(command.getAckNumber());
-    System.out.println("Removed command " + command.getAckNumber() + " from server " + server);
     command = null;
   }
   
   public void observeCommand(ACommand command) {
-    System.out.println("The run controller is going to begin observing " + command.getAckNumber());
     command.addObserver(this);
   }
   
@@ -87,15 +75,12 @@ public class RunController implements Observer {
   public void initializeRunController() {
     this.commandExecutor = Executors.newFixedThreadPool(5);
     commandResults = new ArrayList<Future<Pair<Integer, Integer>>>();
-    System.out.println("RunController created");
   }
   
   public void update(Observable updatedCommand, Object arg) {
 
     synchronized(updatedCommand) {
-      
-      
-      System.out.println("The run controller observed a change in " + ((ACommand) updatedCommand).getAckNumber());
+
       if(arg instanceof AbstractMap.Entry) {
         Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandDetails = (Map.Entry<ACommand, Map.Entry<String, ICommandState>>) arg;
         String server = commandDetails.getValue().getKey();

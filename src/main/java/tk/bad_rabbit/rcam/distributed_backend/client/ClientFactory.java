@@ -37,7 +37,6 @@ public class ClientFactory implements IClientFactory  {
   public Client createClient(String remoteAddress, Integer remotePort) {
     Client newClient = new Client(remoteAddress, remotePort, commandFactory, configurationProvider, runController);
     newClient.setState(new DefaultClientState());
-    System.out.println("Creating a client " + remoteAddress + ":" + remotePort);
     return newClient;
   }
   

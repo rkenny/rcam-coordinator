@@ -27,7 +27,6 @@ import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurati
 public class CommandFactory implements ICommandFactory {
 
     Map<String, JSONObject> commandConfigurations;
-    //Map<String, JSONObject> commandVariables;
     JSONObject serverVariables;
     
     Random rand;
@@ -42,25 +41,20 @@ public class CommandFactory implements ICommandFactory {
     @PostConstruct
     private void initializeCommandFactory() {
       this.commandConfigurations = configurationProvider.getCommandConfigurations();
-      //this.commandVariables = configurationProvider.getCommandVariables();
       this.serverVariables = configurationProvider.getServerVariables();
       rand = new Random();
     }
     
     public CommandFactory(Map<String, JSONObject> commandConfigurations,  JSONObject serverVariables) {
       this.commandConfigurations = commandConfigurations;
-      //this.commandVariables = commandVariables;
       this.serverVariables = serverVariables;
     }
     
     public JSONObject createCommandConfiguration(String commandType) {
       StringBuilder commandArgs = new StringBuilder();
-      // System.out.println("Got to createCommandConfiguration");
       File commandConfigFolder = new File("./config/commands/" + commandType);
-      // System.out.println("Looking for a file in ./config/commands/"+ commandType);
       if(commandConfigFolder.isDirectory()) {
         File commandConfigFile = new File(commandConfigFolder, "command");
-        // System.out.println("Found the command file for " + commandType);
         
         if(commandConfigFile.isFile()) {
           BufferedReader reader;
@@ -82,7 +76,7 @@ public class CommandFactory implements ICommandFactory {
       } else {
         commandArgs.append("{}");
       }
-      // System.out.println("commandArgs is " + commandArgs.toString());
+
       return new JSONObject(commandArgs.toString());
     }
     
@@ -90,7 +84,6 @@ public class CommandFactory implements ICommandFactory {
       JSONObject commandVariables = new JSONObject();
       commandVariables.put("command", command.getCommandName())
         .put("ackNumber", command.getAckNumber());
-      //return createCommand("Ack(command=" + command.getCommandName() + ",ackNumber="+command.getAckNumber()+")");
       return createCommand("Ack", commandVariables);
     }
     
@@ -109,7 +102,6 @@ public class CommandFactory implements ICommandFactory {
       String commandString = commandBuffer.toString();
       
       if(commandString.length() == 0) {
-        System.out.println("commandFactory.createCommand(): commandString is 0. Returning null.");
         return null;
       }
       
@@ -129,7 +121,6 @@ public class CommandFactory implements ICommandFactory {
     }
  
     public ACommand createCommand(@Value("${commandType}") String commandType, JSONObject clientVariables) {
-      System.out.println("Going to create a command " + commandType);
       return createCommand(commandType, new Random().nextInt((99999 - 10000) + 1) + 10000, clientVariables);
     }
     
@@ -140,7 +131,6 @@ public class CommandFactory implements ICommandFactory {
                   createCommandConfiguration(commandType), clientVariables, serverVariables, 
                   configurationProvider.getCommandResponseAction(commandType)
                 );
-
       
       return command;
     }

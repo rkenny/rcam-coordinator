@@ -31,21 +31,10 @@ public class CommandController {
   @Qualifier("commandFactory")
   ICommandFactory commandFactory;
   
-  //@RequestMapping(value= "/command/{commandString}", method = RequestMethod.POST)
-  //public @ResponseBody String command(@PathVariable("commandString") String commandString) {
-    
-  //  ACommand command = commandFactory.createCommand(commandString);
-  //  clientController.register(command);
-  //  return "Done";
-  //}
-  
-  @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST, 
-      //produces = MediaType.APPLICATION_JSON_VALUE, 
+  @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST,  
       consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<String> createCommand(@PathVariable String commandType, @RequestBody String clientVariables) {
-    System.out.println("commandType: " + commandType);
-    System.out.println("requestBody: " + clientVariables);
     
     clientController.register(commandFactory.createCommand(commandType, new JSONObject(clientVariables)));
     

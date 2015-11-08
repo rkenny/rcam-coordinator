@@ -8,8 +8,6 @@ import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 
 public class AckedState extends ACommandState {
 
-  public void doAction(Observer observer, String server, ACommand actionSubject) {
-    System.out.println("Command acked. Wait for the response now.");
-  }
+  public void doAction(Observer observer, String server, ACommand actionSubject) {  }
 
 }

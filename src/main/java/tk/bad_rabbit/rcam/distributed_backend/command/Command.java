@@ -46,8 +46,6 @@ public class Command extends ACommand {
  
   public synchronized void update(Observable updatedClient, Object serverWithPort) {
     if(updatedClient instanceof IClientThread) {
-      System.out.println("A command just received notification that a client's state changed " + serverWithPort);
-      System.out.println(state.get(serverWithPort).getClass().getSimpleName().toString());
       ((IClientThread) updatedClient).doAction(this);      
     }
 
@@ -71,8 +69,6 @@ public class Command extends ACommand {
     this.clientVariables = clientVariables;
     this.serverVariables = serverVariables;
     this.commandResponseAction = commandResponseAction;
-    
-    System.out.println("Created command " + commandName + "[" + commandAckNumber + "]");
   }
   
   
@@ -88,7 +84,6 @@ public class Command extends ACommand {
   public synchronized ICommandState setState(String server, ICommandState state) {
     if(this.state.get(server) == null || !this.state.get(server).equals(new ErrorCommandState()) )  { 
     
-      System.out.println("Trying to change the state for command " + getAckNumber() + " on " + server + " to " + state.getClass().getSimpleName());
       this.state.put(server,  state);
       
       Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
@@ -111,19 +106,12 @@ public class Command extends ACommand {
     Iterator<Entry<String, ICommandState>> serversIterator = servers.iterator();
     while(serversIterator.hasNext()) {
       String server = serversIterator.next().getKey();
-      System.out.println("Going to put " + server + " " + getAckNumber() + " into an error state");
-      System.out.println(ErrorCommandState.class.getSimpleName());
-      System.out.println(this.state.get(server).getClass().getSimpleName());
       this.setState(server, new ErrorCommandState());
-      //if(!this.state.get(server).equals(new ErrorCommandState())) {
-      //  this.state.put(server, new ErrorCommandState());
-      //}
+
     }
   }
   
   public synchronized void doAction(Observer actionObject, String server) {
-    System.out.println("Command.doAction()");
-    System.out.println("About to doAction for server " + server + " on command " + getAckNumber() + " with state " + this.state.get(server).getClass().getSimpleName());
     state.get(server).doAction(actionObject, server, this);
   }
   
@@ -148,7 +136,6 @@ public class Command extends ACommand {
      }
     }
     
-    System.out.println("Is command ready to reduce? " + isReadyToReduce);
     return isReadyToReduce;
   }
   
@@ -183,7 +170,6 @@ public class Command extends ACommand {
     finalCommandString.deleteCharAt(finalCommandString.length()-1);
     finalCommandString.append("}");
     
-    // System.out.println("FinalCommandString after is " + finalCommandString + " after the replaces");
     return finalCommandString.toString();
   }
 
@@ -196,7 +182,6 @@ public class Command extends ACommand {
   }
   
   public CharBuffer asCharBuffer() {
-    System.out.println("Command.asCharBuffer: " + commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
     return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
   }
   
@@ -207,23 +192,16 @@ public class Command extends ACommand {
 
       public Pair<Integer, Integer> call() throws Exception {
 
-        System.out.println("Reducing " + commandName + " by running " + commandConfiguration.get("reductionCommand").toString());
-        
-        System.out.println("Calling command");
-        System.out.println(command);
         ProcessBuilder pb = new ProcessBuilder(command);
         
-        
-        //setupEnvironment(pb.environment());
-        
         Process process = pb.start();
-        System.out.println("started the process");
+
         //Read out dir output
         InputStream is = process.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader br = new BufferedReader(isr);
         String line;
-        System.out.printf("Output of running %s is:\n", Arrays.toString(command));
+
         while ((line = br.readLine()) != null) {
             System.out.println(line);
         }
@@ -233,8 +211,7 @@ public class Command extends ACommand {
         try {
           exitValue = process.waitFor();
           commandConfiguration.put("returnCode", Integer.toString(exitValue));
-          System.out.println(commandConfiguration);
-          System.out.println("\n\nExit Value is " + exitValue);
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

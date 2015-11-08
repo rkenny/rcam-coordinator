@@ -52,13 +52,11 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
   ICommandFactory commandFactory;
   
   public void observeCommand(ACommand command) {
-    System.out.println("ClientThread "  + getServerString() + " is going to begin observing " + command.getAckNumber());
     command.addObserver(this);
   }
   
   
   public synchronized AClientState setState(AClientState clientState) {
-    System.out.println("Changing the clientThread state");
     
     this.clientState = clientState;
     
@@ -69,13 +67,6 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
   }
   
   public synchronized void doAction(Observer actionObserver) {
-    if(actionObserver instanceof ACommand) {
-      System.out.println("ClientThread.doAction() " + getServerString() + " on " + ( (ACommand) actionObserver).getAckNumber());
-    } else {
-      System.out.println("ClientThread.doAction() " + getServerString());
-    }
-    
-    System.out.println("clientState is " + this.clientState.getClass().getSimpleName());
     this.clientState.doAction(actionObserver, this);
   }
   
@@ -108,7 +99,6 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
   }
   
   public void commandResultReceived(Integer ackNumber, Integer resultCode) {
-    System.out.println("Command result received for command " + ackNumber);
     this.runController.commandResultReceived(getServerString(), ackNumber, resultCode);
   }
   
@@ -117,7 +107,6 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
   }
   
   public void readyToReduce(ACommand command) {
-    System.out.println("Server " + getServerString() + " Is calling readyToReduce on " + command.getAckNumber());
     command.setState(getServerString(), new CommandReadyToReduceState());
     this.runController.readyToReduce(getServerString(), command);
   }
@@ -171,7 +160,7 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
       }
     }
     
-    System.out.println("That's it, folks.");
+    System.out.println("Client("+this.getServerString()+".run() is finished.");
   }
 
   public void send(ACommand command) {
@@ -189,7 +178,7 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
           System.out.println("Key is not writable.");
         }
       } catch(IOException ioException) {
-        System.err.println("Error reading from a channel. Closing that channel.");
+        System.err.println("Client("+getServerString()+": Error reading from a channel. Closing that channel.");
         command.setState(getServerString(), new ErrorCommandState());
         try {
           this.setState(new DisconnectedClientState());
@@ -203,7 +192,6 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
   }
   
   public void sendCancel(ACommand command) {
-      System.out.println("Sending a cancel for command " + command.getAckNumber() + " to client " + this.getServerString());
       send(commandFactory.createCancelCommand(command));
   }
   
@@ -230,8 +218,7 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
           keyIterator.remove();
           List<CharBuffer> newCommands = readFromChannel(selectedChannel);
           for(CharBuffer newCommand : newCommands) {
-            System.out.println("");
-            System.out.println("Read " + newCommand.toString() + " from " + remoteAddress);
+
             ACommand processingCommand = commandFactory.createCommand(newCommand);
             if(processingCommand != null) {
               
@@ -245,9 +232,7 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
         }
 
       } catch(IOException ioException) {
-        System.err.println("Error reading from a channel. Closing that channel."
-            + "\n Does this need to set that client's commands to an error state?");
-        
+        System.err.println("Client("+getServerString()+": Error reading from a channel. Closing that channel.");
         try {
           this.setState(new DisconnectedClientState());
           selectedChannel.close();

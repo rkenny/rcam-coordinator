@@ -15,20 +15,13 @@ public interface ICommand  {
   public Integer getAckNumber();
   public String getCommandName();
   
-  //public Object getCommandVariable(String variableName);
   public Object getClientVariable(String variableName);
   public Object getServerVariable(String variableName);
 
   public void performCommandResponseAction(String server, Object actionObject);
-//  public ACommand wasReceived();
-//  public ACommand wasAcked();
-//  public ICommand readyToSend();
-//  public ACommand wasSent();
-//  public ACommand commandError();
-  
+
   public Boolean isType(String commandType);
   
-  //public ACommand copy();
   public ICommandState setState(String server, ICommandState state);
   public Boolean stateEquals(String server, ICommandState comparisonState);
   public void setErrorState();

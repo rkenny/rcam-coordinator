@@ -9,7 +9,6 @@ public class DefaultServletImpl extends DefaultServlet {
 
   protected DefaultServletImpl(ArraySet<File> docRoots) {
     super(docRoots);
-    // TODO Auto-generated constructor stub
   }
 
 }
