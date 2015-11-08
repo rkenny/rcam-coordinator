@@ -94,6 +94,15 @@ public class CommandFactory implements ICommandFactory {
       return createCommand("Ack", commandVariables);
     }
     
+    public ACommand createCancelCommand(ACommand commandToCancel) {
+      JSONObject commandVariables = new JSONObject();
+      commandVariables.put("command",  commandToCancel.getCommandName())
+        .put("ackNumber", commandToCancel.getAckNumber());
+      
+      return createCommand("Cancel", commandVariables);
+      
+    }
+    
     public ACommand createCommand(CharBuffer commandBuffer) {
       String commandType;
       int commandTypeLength;

@@ -31,7 +31,7 @@ public class Client implements IClient  {
     newClientThread.addObserver(command);
     command.addObserver(newClientThread);
     
-    System.out.println("Command " + command.getAckNumber() +  " and ClientThread" + newClientThread.getServerString() + " are now observing each other");
+    System.out.println("Command " + command.getAckNumber() +  " and ClientThread " + newClientThread.getServerString() + " are now observing each other");
   }
 
   public String getServerString() {
@@ -51,9 +51,12 @@ public class Client implements IClient  {
   }
   
   public void sendAck(ACommand command) {
+    System.out.println("AwaitingAckState doAction called. Does this ever happen?");
     sendCommand(commandFactory.createAckCommand(command));
     command.setState(getServerString(), new AckedState());
   }
+  
+
   
   public void setRemoteAddress(String remoteAddress) {
     this.remoteAddress = remoteAddress;

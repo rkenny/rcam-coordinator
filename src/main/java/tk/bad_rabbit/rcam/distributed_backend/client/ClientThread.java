@@ -87,14 +87,12 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
       while(keyIterator.hasNext()) {
         SelectionKey key = keyIterator.next();
         SocketChannel selectedChannel = (SocketChannel) key.channel();
-        // System.out.println("Is the key valid? " + key.isValid());
       }
       
       
       if(arg instanceof Map.Entry) {
         Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandStateMap = (Map.Entry<ACommand, Map.Entry<String, ICommandState>> ) arg;
         if(this.getServerString().equals(commandStateMap.getValue().getKey())) {
-          // System.out.println("Right server. Do the command action.");
           ((ACommand) updatedCommand).doAction(this, commandStateMap.getValue().getKey());
         }
       }
@@ -202,6 +200,11 @@ public class ClientThread extends Observable implements Runnable, Observer, ICli
         }
       }
     }
+  }
+  
+  public void sendCancel(ACommand command) {
+      System.out.println("Sending a cancel for command " + command.getAckNumber() + " to client " + this.getServerString());
+      send(commandFactory.createCancelCommand(command));
   }
   
   private void performPendingSocketIO() throws IOException{

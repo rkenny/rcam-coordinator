@@ -57,6 +57,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
     commandResultConfiguration.put("clientVars", resultClientVars);
     commandResultConfiguration.put("commandVars", new JSONObject("{ignored: false}"));
     addSystemCommand("CommandResult", commandResultConfiguration, new ResultCommandResponseAction());
+    
+    JSONObject cancelConfiguration = new JSONObject();
+    JSONArray cancelClientVars = new JSONArray();
+    cancelClientVars.put("command");
+    cancelClientVars.put("ackNumber");
+    cancelConfiguration.put("clientVars", cancelClientVars);
+    cancelConfiguration.put("commandVars", new JSONObject("{ignored: true}"));
+    addSystemCommand("Cancel", cancelConfiguration, new DefaultCommandResponseAction());
   }
   
   private void addSystemCommand(String commandType, JSONObject commandConfiguration, ICommandResponseAction commandResponseAction) {
