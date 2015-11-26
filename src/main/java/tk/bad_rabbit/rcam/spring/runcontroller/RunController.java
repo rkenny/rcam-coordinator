@@ -44,25 +44,30 @@ public class RunController implements Observer {
   }
   
   public void commandResultReceived(String server, Integer ackNumber, Integer resultCode) {
-    if(!(commandList.get(server) == null) && 
-        !(commandList.get(server).get(ackNumber) == null) && 
-        !(commandList.get(server).get(ackNumber).stateEquals(server, new ErrorCommandState()))) { 
+    if(commandCanBeReduced(server, ackNumber)) { 
       commandList.get(server).get(ackNumber).setReturnCode(resultCode);
       commandList.get(server).get(ackNumber).setState(server, new CommandCompletedState());
       
     }    
+
+  }
+
+  private boolean commandCanBeReduced(String server, Integer ackNumber) {
+    return !(commandList.get(server) == null) && 
+        !(commandList.get(server).get(ackNumber) == null) && 
+        !(commandList.get(server).get(ackNumber).stateEquals(server, new ErrorCommandState())) &&
+        !(commandList.get(server).get(ackNumber).stateEquals(server, new CommandReducedState()));
   }
   
   public void readyToReduce(String server, ACommand command) {
-    
     if(command.isReadyToReduce()) {
        commandExecutor.submit(command.reduce()); 
-       command.setState(server, new CommandReducedState());
+       command.setReducedState();
      }
-    
   }
   
   public void removeCommand(String server, ACommand command) {
+    System.out.println("RunController removing command " + command.getCommandName() + "[" + command.getAckNumber() + "]");
     commandList.get(server).remove(command.getAckNumber());
     command = null;
   }

@@ -25,6 +25,7 @@ public interface ICommand  {
   public ICommandState setState(String server, ICommandState state);
   public Boolean stateEquals(String server, ICommandState comparisonState);
   public void setErrorState();
+  public void setReducedState();
   
   public void setReturnCode(Integer returnCode);
   public Integer getReturnCode();

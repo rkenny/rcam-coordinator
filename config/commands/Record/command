@@ -2,5 +2,6 @@
   "clientVars":["duration"],
   "commandVars":{"videoSource":"ohYeah", "vlcPath":"somewhere"},
   "OldCommandString":"duration:&duration",
-  "reductionCommand":"./config/commands/Record/reduce.sh"
+  "reductionCommand":"./config/commands/Record/reduce.sh",
+  "reduceOnFirstResult":"false"
 }

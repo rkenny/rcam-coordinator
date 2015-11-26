@@ -26,7 +26,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
   Map<String, Integer> backendInfo;
 
   Map<String, JSONObject> commandConfigurations;
-  //Map<String, JSONObject> commandVariables;
+
   JSONObject serverVariables;
   Map<String, ICommandResponseAction> commandResponseActions;
   

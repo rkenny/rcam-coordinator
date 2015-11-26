@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.CharBuffer;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,16 +19,18 @@ import org.json.JSONObject;
 import tk.bad_rabbit.rcam.app.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
-import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class Command extends ACommand {
   private String commandName;
   private Integer commandAckNumber;
+  
   private JSONObject clientVariables;
-  private JSONObject commandConfiguration;
+  private JSONObject commandConfiguration; // this would probably be better as a set of interfaces.
   private JSONObject serverVariables;
+  
   private ICommandResponseAction commandResponseAction;
   
   private volatile Map<String, ICommandState> state;
@@ -101,14 +102,21 @@ public class Command extends ACommand {
     return this.state.get(server).equals(comparisonState);
   }
   
-  public synchronized void setErrorState() {
+  public synchronized void setAllServersState(ICommandState newState) {
     Set<Entry<String, ICommandState>> servers = this.state.entrySet();
     Iterator<Entry<String, ICommandState>> serversIterator = servers.iterator();
     while(serversIterator.hasNext()) {
       String server = serversIterator.next().getKey();
-      this.setState(server, new ErrorCommandState());
-
+      this.setState(server, newState);
     }
+  }
+  
+  public synchronized void setErrorState() {
+    setAllServersState(new ErrorCommandState());
+  }
+  
+  public synchronized void setReducedState() {
+    setAllServersState(new CommandReducedState());
   }
   
   public synchronized void doAction(Observer actionObject, String server) {
@@ -125,15 +133,26 @@ public class Command extends ACommand {
   }
   
   public Boolean isReadyToReduce() {
+    // This could maybe go into a strategy.
     Set<Entry<String, ICommandState>> servers = this.state.entrySet();
     Iterator<Entry<String, ICommandState>> serversIterator = servers.iterator();
     CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
     Boolean isReadyToReduce = true;
+    
+    
     while(serversIterator.hasNext()) {
-     ICommandState serverState = serversIterator.next().getValue();
-     if(!serverState.typeEquals(readyToReduceState)) {
-       isReadyToReduce = false;
-     }
+      ICommandState serverState = serversIterator.next().getValue();
+      
+      
+      if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
+        if(serverState.typeEquals(readyToReduceState)) {
+          return true;
+        }
+      }
+     
+      if(!serverState.typeEquals(readyToReduceState)) {
+        isReadyToReduce = false;
+      }
     }
     
     return isReadyToReduce;
@@ -142,7 +161,7 @@ public class Command extends ACommand {
   
   public String finalizeCommandString() {
     StringBuilder finalCommandString = new StringBuilder();
-    // System.out.println("finalCommandString is " + finalCommandString + " before the replaces");
+
     finalCommandString.append("{");
     if(commandConfiguration.has("clientVars")) {
       for(int i = 0; i < commandConfiguration.getJSONArray("clientVars").length(); i++) {

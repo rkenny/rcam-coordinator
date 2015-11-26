@@ -1,0 +1,7 @@
+{
+  "clientVars":["pattern"],
+  "commandVars":{},
+  "OldCommandString":"pattern:&pattern",
+  "reductionCommand":"./config/commands/Grep/reduce.sh",
+  "reduceOnFirstResult":"true"
+}
