@@ -7,7 +7,7 @@ import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
 
 
-public class ErrorCommandState extends ACommandState {
+public class ErrorCommandState  {// extends ACommandState {
 
   public void doAction(Observer observer, String server, ACommand actionSubject) {
     if(observer instanceof IClientThread) {

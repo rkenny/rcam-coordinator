@@ -15,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.DefaultCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
@@ -28,14 +29,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
   Map<String, JSONObject> commandConfigurations;
 
   JSONObject serverVariables;
-  Map<String, ICommandResponseAction> commandResponseActions;
+  Map<String, ACommandResponseAction> commandResponseActions;
   
   
   public ConfigurationProvider() {
     readClientsConfiguration();
     
     serverVariables = new JSONObject();
-    commandResponseActions = new HashMap<String, ICommandResponseAction>();
+    commandResponseActions = new HashMap<String, ACommandResponseAction>();
     readServerConfiguration();
     readCommandConfigurations();
     
@@ -65,7 +66,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     addSystemCommand("Cancel", cancelConfiguration, new DefaultCommandResponseAction());
   }
   
-  private void addSystemCommand(String commandType, JSONObject commandConfiguration, ICommandResponseAction commandResponseAction) {
+  private void addSystemCommand(String commandType, JSONObject commandConfiguration, ACommandResponseAction commandResponseAction) {
     commandConfigurations.put(commandType, commandConfiguration);
     commandResponseActions.put(commandType, commandResponseAction);
   }
@@ -168,6 +169,10 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return serverVariables;
   }
   
+  public Object getServerVariable(String variable) {
+    return serverVariables.get(variable);
+  }
+  
   public int getServerPort() {
     return new Integer(serverVariables.getInt("port")); //Integer.parseInt(serverVariables.getInt("port"));
   }
@@ -193,7 +198,7 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return backendList;
   }
 
-  public ICommandResponseAction getCommandResponseAction(String commandType) {
+  public ACommandResponseAction getCommandResponseAction(String commandType) {
     return commandResponseActions.get(commandType);
   }
 

@@ -6,8 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.CharBuffer;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -19,9 +17,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import tk.bad_rabbit.rcam.coordinator.server.ServerThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Command;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
+import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 @Service(value="commandFactory")
 public class CommandFactory implements ICommandFactory {
@@ -96,27 +96,37 @@ public class CommandFactory implements ICommandFactory {
       
     }
     
+   
+    public String getCommandType(String commandString) {
+      int commandTypeLength = commandString.indexOf("{") > 0 ? commandString.indexOf("{") : commandString.length();
+      
+      commandTypeLength = (commandString.indexOf("[") < commandTypeLength  
+          && commandString.indexOf("[") > 0 ) ? commandString.indexOf("[") : commandTypeLength;
+          
+      return commandString.substring(0, commandTypeLength).trim();
+    }
+    
+    public ACommand createCommand(CharBuffer commandBuffer, String server) {
+      ACommand command = createCommand(commandBuffer);
+      command.setOrigin(server);
+      
+      return command;
+    }
+    
     public ACommand createCommand(CharBuffer commandBuffer) {
-      String commandType;
-      int commandTypeLength;
       String commandString = commandBuffer.toString();
       
+      String commandType = getCommandType(commandString);
+      Integer commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
+      JSONObject clientVariables = new JSONObject(commandString.substring(commandString.indexOf("{"), commandString.length()));;
+      int commandTypeLength;
+      
+      
+      System.out.println("RCam Coordinator - CommandFactory - Trying to create command: " + commandString);
       if(commandString.length() == 0) {
         return null;
       }
       
-      System.out.println("CommandFactory: Creating " + commandString + " from a charBuffer");
-      commandTypeLength = commandString.indexOf("{") > 0 ? commandString.indexOf("{") : commandString.length();
-      
-      commandTypeLength = (commandString.indexOf("[") < commandTypeLength  
-          && commandString.indexOf("[") > 0 ) ? commandString.indexOf("[") : commandTypeLength;
-      commandType = commandString.substring(0, commandTypeLength).trim();
-        
-      Integer commandAckNumber;
-
-      commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
-
-      JSONObject clientVariables = new JSONObject(commandString.substring(commandString.indexOf("{"), commandString.length()));
       return createCommand(commandType, commandAckNumber, clientVariables);
     }
  
@@ -127,8 +137,11 @@ public class CommandFactory implements ICommandFactory {
     public ACommand createCommand(String commandType, Integer ackNumber, JSONObject clientVariables) {
       ACommand command = null;
       
-      command = new Command(commandType, ackNumber, 
-                  createCommandConfiguration(commandType), clientVariables, serverVariables, 
+      command = new Command(commandType, 
+                  ackNumber,
+                  createCommandConfiguration(commandType), 
+                  clientVariables, 
+                  serverVariables, 
                   configurationProvider.getCommandResponseAction(commandType)
                 );
       

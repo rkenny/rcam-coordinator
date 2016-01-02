@@ -8,10 +8,14 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class CommandReducedState extends ACommandState {
 
-  public void doAction(Observer observer, String server, ACommand actionSubject) {
-    if(observer instanceof ClientThread) {
-      ((ClientThread) observer).removeCommand((ACommand) actionSubject);
-    }
-  }
+  //public void doAction(Observer observer, String server, ACommand actionSubject) {
+  //  if(observer instanceof ClientThread) {
+  //    ((ClientThread) observer).removeCommand((ACommand) actionSubject);
+  //  }
+  //}
+  
+  public void doNetworkStuff(Observer observer, String server, ACommand actionSubject) {}
+  public void nextState(String server, ACommand actionSubject) {}
+  public void doRelatedCommandStuff(Observer actionObserver, String server, ACommand actionSubject) {  }
 
 }

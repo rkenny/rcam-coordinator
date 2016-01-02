@@ -5,7 +5,7 @@ import java.util.Observer;
 
 public abstract class ACommand extends Observable implements ICommand, Observer {
   
-  public void update(Observable clientThread, Object arg) {}
+  public void update(Observable serverThread, Object arg) {}
   
   @Override
   public void notifyObservers(Object arg) {

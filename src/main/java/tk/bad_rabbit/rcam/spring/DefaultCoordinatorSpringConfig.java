@@ -1,4 +1,4 @@
-package tk.bad_rabbit.rcam.spring.config;
+package tk.bad_rabbit.rcam.spring;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,6 +16,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @EnableScheduling
 @ComponentScan({"tk.bad_rabbit.rcam.spring.*", 
   "tk.bad_rabbit.rcam.distributed_backend.*",
+  "tk.bad_rabbit.rcam.coordinator.*",
   "org.springframework.context.annotation.CommonAnnotationBeanPostProcessor"})
 public class DefaultCoordinatorSpringConfig extends WebMvcConfigurerAdapter {
   @Override

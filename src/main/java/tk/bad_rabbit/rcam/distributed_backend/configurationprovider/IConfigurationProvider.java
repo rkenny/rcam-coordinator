@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
 
 public interface IConfigurationProvider {
   // This is the coordinator's configuration provider
@@ -25,7 +25,8 @@ public interface IConfigurationProvider {
   
   //public Map<String, JSONObject> getCommandVariables();
   public JSONObject getServerVariables();
+  public Object getServerVariable(String variable);
   public List<String> getBackendList();
 
-  ICommandResponseAction getCommandResponseAction(String commandType);
+  ACommandResponseAction getCommandResponseAction(String commandType);
 }

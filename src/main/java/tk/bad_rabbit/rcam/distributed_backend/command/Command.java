@@ -17,21 +17,23 @@ import java.util.concurrent.Callable;
 import org.json.JSONObject;
 
 import tk.bad_rabbit.rcam.app.Pair;
+import tk.bad_rabbit.rcam.coordinator.server.ServerThread;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 public class Command extends ACommand {
   private String commandName;
+  private String origin;
   private Integer commandAckNumber;
   
   private JSONObject clientVariables;
   private JSONObject commandConfiguration; // this would probably be better as a set of interfaces.
   private JSONObject serverVariables;
   
-  private ICommandResponseAction commandResponseAction;
+  private ACommandResponseAction commandResponseAction;
   
   private volatile Map<String, ICommandState> state;
   
@@ -45,16 +47,36 @@ public class Command extends ACommand {
     return this.returnCode;
   }
  
+  public String getOrigin() {
+    return origin;
+  }
+  
+  public void setOrigin(String origin) {
+    this.origin = origin;
+  }
+  
   public synchronized void update(Observable updatedClient, Object serverWithPort) {
-    if(updatedClient instanceof IClientThread) {
-      ((IClientThread) updatedClient).doAction(this);      
+    if(updatedClient instanceof ServerThread) {
+      System.out.println("The server needs to set a command into error state if it's not connected to "+  serverWithPort );
+      //((ServerThread) updatedClient).doAction(this);      
     }
-
   }
   
   
-  public void performCommandResponseAction(String server, Object actionObject) {
-    this.commandResponseAction.doAction(actionObject, server, this);
+  public void performCommandResponseRelatedAction(String server, Observer actionObject) {
+    System.out.println("RCam Coordinator - Command - Calling performCommandResponseRelatedAction for " + this.getCommandName() + "[" + this.getAckNumber() + "]("+server+")");
+    //System.out.println("RCam Coordinator - Command - on " + ((ACommand) actionObject).getAckNumber());
+    this.commandResponseAction.doRelatedCommandAction(actionObject, server, this);
+  }
+  
+  public void setCommandResponseRelatedAction(ACommandResponseAction newAction) {
+    System.out.println("RCam Coordinator - Command - Setting commandResponseRelatedAction to " + newAction.getClass().getSimpleName());
+    this.commandResponseAction = newAction;
+  }
+  
+  public void performCommandResponseNetworkAction(String server, Observer actionObject) {
+    System.out.println("RCam Coordinator - Command - Calling performCommandResponseNetworkAction");
+    this.commandResponseAction.doNetworkAction(actionObject, server, this);
   }
   
   public Command() {
@@ -62,7 +84,7 @@ public class Command extends ACommand {
   }
   
   public Command(String commandName, Integer commandAckNumber, JSONObject commandConfiguration,
-      JSONObject clientVariables, JSONObject serverVariables, ICommandResponseAction commandResponseAction) {
+      JSONObject clientVariables, JSONObject serverVariables, ACommandResponseAction commandResponseAction) {
     this();
     this.commandName = commandName;
     this.commandConfiguration = commandConfiguration;
@@ -70,32 +92,56 @@ public class Command extends ACommand {
     this.clientVariables = clientVariables;
     this.serverVariables = serverVariables;
     this.commandResponseAction = commandResponseAction;
+    
+    System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - created");
   }
   
   
   public Object getClientVariable(String variableName) {
-    return this.clientVariables.get(variableName);
+    return clientVariables.has(variableName) ? clientVariables.get(variableName) : null; 
   }
   
   public Object getServerVariable(String variableName) {
-    return this.serverVariables.get(variableName);
+    return serverVariables.has(variableName) ? serverVariables.get(variableName) : null;
+  }
+  
+  public void setClientVariable(String variableName, Object variable) {
+    this.clientVariables.put(variableName, variable);
   }
   
   
-  public synchronized ICommandState setState(String server, ICommandState state) {
-    if(this.state.get(server) == null || !this.state.get(server).equals(new ErrorCommandState()) )  { 
+  public void setServers(Set<String> servers) {
+    Iterator<String> i = servers.iterator();
+    while(i.hasNext()) {
+      String s = i.next();
+      state.put(s, null);
+    }
+  }
+  
+  public void setState(ICommandState newState) {
+    Iterator<String> i = state.keySet().iterator();
+    while(i.hasNext()) {
+      String s = i.next();
+      this.setState(s, newState);
+    }
+    return;
+  }
+  
+  
+  public synchronized void setState(String client, ICommandState state) {
+    System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - SetState called for " + client + " state " + state.getClass().getSimpleName());
+    if(this.state.get(client) == null || !this.state.get(client).equals(new ErrorCommandState()) )  { 
     
-      this.state.put(server,  state);
+      this.state.put(client,  state);
       
-      Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(server, state);
+      Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(client, state);
       Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
       
       setChanged();
       notifyObservers(commandDetails);
-      
-    
+     
     }
-    return this.state.get(server);
+    return;
   }
   
   public Boolean stateEquals(String server, ICommandState comparisonState) {
@@ -111,16 +157,20 @@ public class Command extends ACommand {
     }
   }
   
-  public synchronized void setErrorState() {
-    setAllServersState(new ErrorCommandState());
+  //public synchronized void setErrorState() {
+    //setAllServersState(new ErrorCommandState());
+  //}
+  
+  //public synchronized void setReducedState() {
+    //setAllServersState(new CommandReducedState());
+  //}
+  
+  public synchronized void doNetworkAction(Observer actionObject, String client) {
+    state.get(client).doNetworkAction(actionObject, client, this);
   }
   
-  public synchronized void setReducedState() {
-    setAllServersState(new CommandReducedState());
-  }
-  
-  public synchronized void doAction(Observer actionObject, String server) {
-    state.get(server).doAction(actionObject, server, this);
+  public synchronized void doRelatedCommandAction(Observer actionObserver, ACommand relatedCommand) {
+    
   }
   
 

@@ -13,7 +13,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.ConfigurationProvider;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
-import tk.bad_rabbit.rcam.spring.config.DefaultCoordinatorSpringConfig;
+import tk.bad_rabbit.rcam.spring.DefaultCoordinatorSpringConfig;
 
 
 

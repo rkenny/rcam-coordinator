@@ -15,35 +15,35 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 @Service(value="clientFactory")
 //@Scope("session")
-public class ClientFactory implements IClientFactory  {
-  private List<IClient> remoteClients;
-  
-  @Autowired
-  RunController runController;
-  
-  @Autowired
-  @Qualifier("commandFactory")
-  private CommandFactory commandFactory;
-  
-  @Autowired
-  @Qualifier("configurationProvider")
-  private ConfigurationProvider configurationProvider;
-  
-  
-  public ClientFactory() {
-    remoteClients = new ArrayList<IClient>(); 
-  }
-  
-  public Client createClient(String remoteAddress, Integer remotePort) {
-    Client newClient = new Client(remoteAddress, remotePort, commandFactory, configurationProvider, runController);
-    newClient.setState(new DefaultClientState());
-    return newClient;
-  }
-  
-  
-  public List<IClient> getRemoteClients() {
-    return remoteClients;
-  }
+public class ClientFactory { // implements IClientFactory  {
+//  private List<IClient> remoteClients;
+//  
+//  @Autowired
+//  RunController runController;
+//  
+//  @Autowired
+//  @Qualifier("commandFactory")
+//  private CommandFactory commandFactory;
+//  
+//  @Autowired
+//  @Qualifier("configurationProvider")
+//  private ConfigurationProvider configurationProvider;
+//  
+//  
+//  public ClientFactory() {
+//    remoteClients = new ArrayList<IClient>(); 
+//  }
+//  
+//  public Client createClient(String remoteAddress, Integer remotePort) {
+//    Client newClient = new Client(remoteAddress, remotePort, commandFactory, configurationProvider, runController);
+//    newClient.setState(new DefaultClientState());
+//    return newClient;
+//  }
+//  
+//  
+//  public List<IClient> getRemoteClients() {
+//    return remoteClients;
+//  }
   
 
   
