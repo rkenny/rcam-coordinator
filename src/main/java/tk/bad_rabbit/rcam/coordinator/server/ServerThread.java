@@ -21,6 +21,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -31,12 +33,11 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ReceivedCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
-import tk.bad_rabbit.rcam.spring.commands.CommandController;
 
 @Service(value="serverThread")
 @Scope("singleton")
 public class ServerThread extends Observable implements Runnable, Observer  {
-  CommandController commandController;
+  
   
   @Autowired
   @Qualifier("commandFactory")
@@ -45,6 +46,10 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   @Autowired
   @Qualifier("configurationProvider")
   IConfigurationProvider configurationProvider;
+  
+  
+  List<Observer> observers;
+  
   
   ServerSocketChannel serverSocketChannel;
   Map<String, SocketChannel> socketChannels;
@@ -57,13 +62,17 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   public Thread thread;
   
   
-  public void injectCommandController(CommandController commandController) {
-    this.commandController = commandController;
+  @PostConstruct
+  public void initialize() {
+    this.observers = new ArrayList<Observer>();
+  }
+  
+  public void injectObserver(Observer newObserver) {
+    this.observers.add(newObserver);
   }
   
   public Set<String> getConnectedServers() {
     return socketChannels.keySet();
-    
   }
   
   public void update(Observable observable, Object arg) {
@@ -189,8 +198,8 @@ public class ServerThread extends Observable implements Runnable, Observer  {
          for(CharBuffer cB : newCommands) {
            ACommand newCommand = commandFactory.createCommand(cB, rC);
            if(newCommand != null) {
-             newCommand.addObserver(this);
-             newCommand.addObserver(commandController);
+             newCommand.addObservers(observers);
+             
              newCommand.setServers(getConnectedServers());
              newCommand.setState(new ReceivedCommandState());
            }
@@ -216,7 +225,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
      returnedBuffer = asciiDecoder.decode(buffer).toString();
    } catch (CharacterCodingException e) {
      e.printStackTrace();
-     //returnedBuffer = CharBuffer.allocate(1024);
    }
    buffer.clear();
    
@@ -280,34 +288,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
      }  
    }
  
-   //public void commandResultReceived(Integer ackNumber, Integer resultCode) {
-   //  this.runController.commandResultReceived(getServerString(), ackNumber, resultCode);
-   //}
 
- 
- 
- //public void ackCommandReceived(String client, ACommand command) {
- //    command.setState(client, new AckedState());
- //}
- 
- //public void sendAck(String client, ACommand command) {
- //  send(client, commandFactory.createAckCommand(command));
- //  command.setState(client, new AckedState());
- //}
-   
-  //public void sendAck(ACommand command) {
-  //    ACommand ackCommand = commandFactory.createAckCommand(command);
-  //    ackCommand.addObserver(this);
-  //    send(ackCommand);
-  //    
-  //    ICommandState ackedState = new AckedState();
-  //    command.setState(ackedState);
- // }
-  
-  //public void sendResult(ACommand command) {
-//    ACommand resultCommand = commandFactory.createResultCommand(command);
-    //send(resultCommand);
-  //}
-  
   
 }

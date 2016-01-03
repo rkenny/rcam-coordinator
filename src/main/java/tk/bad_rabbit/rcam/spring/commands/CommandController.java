@@ -1,10 +1,12 @@
 package tk.bad_rabbit.rcam.spring.commands;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
@@ -29,12 +31,19 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.ReadyToSendState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 //import tk.bad_rabbit.rcam.app.RunController;
 
-@Controller
+@Controller(value="commandController")
 @Scope("singleton")
 public class CommandController implements Observer {
   
   @Autowired
+  @Qualifier("serverThread")
   ServerThread serverThread;
+  
+  @Autowired
+  @Qualifier("runController")
+  Observer runController;
+  
+  List<Observer> observers;
   
   Map<Integer, ACommand> commandMap;
   
@@ -45,6 +54,10 @@ public class CommandController implements Observer {
   @PostConstruct
   public void initialize() {
     this.commandMap = new HashMap<Integer, ACommand>();
+    observers = new ArrayList<Observer>();
+    observers.add(this);
+    observers.add(serverThread);
+    observers.add(runController);
   }
   
   @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST,  
@@ -58,8 +71,8 @@ public class CommandController implements Observer {
     
     commandMap.put(newCommand.getAckNumber(), newCommand);
     
-    newCommand.addObserver(this);
-    newCommand.addObserver(serverThread);
+    newCommand.addObservers(observers);
+    
     newCommand.setServers(serverThread.getConnectedServers());    
     newCommand.setState(new ReadyToSendState());
     
@@ -86,18 +99,6 @@ public class CommandController implements Observer {
 
       updatedCommand.doRelatedCommandAction(this, server);
       
-      
-      //if(updatedCommand.getClientVariable("ackNumber") != null) {
-        //relatedCommand = commandMap.get(updatedCommand.getClientVariable("ackNumber"));
-        
-      //}
-      //updatedCommand.performCommandResponseRelatedAction(server, commandMap.get(updatedCommand.getClientVariable("ackNumber")));
-
-      
-    } //<ACommand, Entry<String, ICommandState>>
-    //ACommand relatedCommand = getCommand((Integer) arg);
-    
-    
-    //updatedCommand.doRelatedCommandAction(this, updatedCommand.getOrigin(), getCommand((Integer) arg));
+    } 
   }
 }

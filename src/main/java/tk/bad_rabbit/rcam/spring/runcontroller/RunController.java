@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,7 +28,7 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
-@Controller
+@Controller(value="runController")
 @Scope("singleton")
 public class RunController implements Observer {
 //  boolean running;
@@ -40,8 +41,25 @@ public class RunController implements Observer {
     commandResults = new ArrayList<Future<Pair<Integer, Integer>>>();
   }
   
-  public void update(Observable updatedCommand, Object arg) {
+  public void update(Observable o, Object arg) {
+    ACommand updatedCommand = (ACommand) o;
+    System.out.println("RCam Coordinator - RunController - Receieved an update for command " + updatedCommand.getAckNumber());
     
+    if(arg instanceof Entry) {
+      Entry<ACommand, Entry<String, ICommandState>> details = (Entry<ACommand, Entry<String, ICommandState>> ) arg;
+      String server = details.getValue().getKey();
+      updatedCommand = details.getKey();
+      System.out.println("RCam Coordinator - CommandController - Updating a related command on server " + server);
+      System.out.println("RCam Coordinator - CommandController - updating related command with ackNumber " + updatedCommand.getAckNumber());
+      System.out.println("RCam Coordinator - CommandController - updating related command with variable ackNumber " + updatedCommand.getClientVariable("ackNumber"));
+
+      updatedCommand.doRunCommandAction(this, server);
+      
+    } 
+  }
+  
+  public void reduce(ACommand command) {
+    System.out.println("This will reduce Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
   }
   
 //  

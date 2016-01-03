@@ -25,6 +25,7 @@ public interface ICommand  {
   
   public void doNetworkAction(Observer actionObserver, String server);
   public void doRelatedCommandAction(Observer actionObserver, String server);
+  public void doRunCommandAction(Observer actionObserver, String server);
   
   //public void setCommandResponseRelatedAction(ACommandResponseAction newAction);
   //public void performCommandResponseNetworkAction(String server, Observer actionObject);

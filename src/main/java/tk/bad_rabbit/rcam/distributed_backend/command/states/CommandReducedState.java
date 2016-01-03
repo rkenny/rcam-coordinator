@@ -1,11 +1,8 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.states;
 
-import java.util.Observer;
-
-import tk.bad_rabbit.rcam.distributed_backend.client.ClientThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
-import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.SetRelatedCommandsToDoneResponseAction;
 
 public class CommandReducedState extends ACommandState {
 
@@ -17,6 +14,10 @@ public class CommandReducedState extends ACommandState {
   
   ICommandResponseAction networkResponseAction;
   ICommandResponseAction relatedCommandAction;
+  
+  public CommandReducedState() {
+    setRelatedCommandResponseAction(new SetRelatedCommandsToDoneResponseAction());
+  }
   
   public void nextState(String server, ACommand actionSubject) {}
   
@@ -38,6 +39,10 @@ public class CommandReducedState extends ACommandState {
   public ICommandResponseAction getRelatedCommandResponseAction() {
     return relatedCommandAction;
   }
+
+  ICommandResponseAction runCommandAction;
+  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
   
 

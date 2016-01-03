@@ -39,6 +39,9 @@ public class CommandSentState extends ACommandState {
     return relatedCommandAction;
   }
 
-  
+  ICommandResponseAction runCommandAction;
+  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
+
 
 }

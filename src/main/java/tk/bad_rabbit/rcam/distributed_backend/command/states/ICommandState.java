@@ -10,12 +10,16 @@ public interface ICommandState {
   public void doNetworkAction(Observer actionObserver, String server, ACommand actionSubject);
   public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject);
   
+  
   ICommandResponseAction getNetworkResponseAction();
   ICommandResponseAction getRelatedCommandResponseAction();
   
   void setNetworkResponseAction(ICommandResponseAction newNetworkResponseAction);
   void setRelatedCommandResponseAction(ICommandResponseAction newRelatedCommandResponseAction);
   
+  ICommandResponseAction getRunCommandResponseAction();
+  void setRunCommandResponseAction(ICommandResponseAction newRunCommandResponseAction);
+  public void doRunCommandAction(Observer actionObserver, String server, ACommand actionSubject);
   
   abstract void nextState(String server, ACommand actionSubject);
   //abstract void doNetworkStuff(Observer actionObserver, String server, ACommand actionSubject);

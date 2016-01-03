@@ -1,9 +1,8 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.states;
 
-import java.util.Observer;
-
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.RemoveCommandResponseAction;
 
 
 public class DoneState extends ACommandState {
@@ -12,6 +11,10 @@ public class DoneState extends ACommandState {
   ICommandResponseAction relatedCommandAction;
   
   public void nextState(String server, ACommand actionSubject) {}
+  
+  public DoneState() {
+    setRelatedCommandResponseAction(new RemoveCommandResponseAction());
+  }
   
   
   public ICommandResponseAction getNetworkResponseAction() {
@@ -31,6 +34,10 @@ public class DoneState extends ACommandState {
   public ICommandResponseAction getRelatedCommandResponseAction() {
     return relatedCommandAction;
   }
+
+  ICommandResponseAction runCommandAction;
+  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
   
 

@@ -59,26 +59,6 @@ public class Command extends ACommand {
 //    }
 //  }
   
-  
-  //public void performCommandResponseRelatedAction(String server, Observer actionObject) {
-  //  System.out.println("RCam Coordinator - Command - Calling performCommandResponseRelatedAction for " + this.getCommandName() + "[" + this.getAckNumber() + "]("+server+")");
-    //System.out.println("RCam Coordinator - Command - on " + ((ACommand) actionObject).getAckNumber());
-  //  this.commandResponseRelatedAction.doRelatedCommandAction(actionObject, server, this);
-  //}
-  
-  //public void setCommandResponseRelatedAction(ACommandResponseAction newAction) {
-  //  System.out.println("RCam Coordinator - Command - Setting commandResponseRelatedAction to " + newAction.getClass().getSimpleName());
-  //  this.commandResponseRelatedAction = newAction;
-  //}
-  
-  //public void performCommandResponseNetworkAction(String server, Observer actionObject) {
-  //  System.out.println("RCam Coordinator - Command - Calling performCommandResponseNetworkAction");
-  //  this.commandResponseAction.doNetworkAction(actionObject, server, this);
- // }
-  
-  //public synchronized void doNetworkAction(Observer actionObject, String client) {
-  //  state.get(client).doNetworkAction(actionObject, client, this);
-  //}
     
   public Command() {
     this.state = new HashMap<String, ICommandState>();
@@ -183,16 +163,12 @@ public class Command extends ACommand {
   }
   
   public Boolean isReadyToReduce() {
-    // This could maybe go into a strategy.
-    Set<Entry<String, ICommandState>> servers = this.state.entrySet();
-    Iterator<Entry<String, ICommandState>> serversIterator = servers.iterator();
-    CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
-    Boolean isReadyToReduce = true;
     
+    Iterator<Entry<String, ICommandState>> serversIterator = this.state.entrySet().iterator();
+    CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
     
     while(serversIterator.hasNext()) {
       ICommandState serverState = serversIterator.next().getValue();
-      
       
       if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
         if(serverState.typeEquals(readyToReduceState)) {
@@ -201,11 +177,11 @@ public class Command extends ACommand {
       }
      
       if(!serverState.typeEquals(readyToReduceState)) {
-        isReadyToReduce = false;
+        return false;
       }
     }
     
-    return isReadyToReduce;
+    return true;
   }
   
   

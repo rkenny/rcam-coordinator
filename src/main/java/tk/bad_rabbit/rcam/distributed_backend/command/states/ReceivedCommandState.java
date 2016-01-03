@@ -16,11 +16,11 @@ public class ReceivedCommandState extends ACommandState {
 //    }
   //}
   
-  public void doRelatedNetworkAction(Observer observer, String server, ACommand actionSubject) {
+  //public void doRelatedNetworkAction(Observer observer, String server, ACommand actionSubject) {
     //synchronized(actionSubject) {
     //  actionSubject.performCommandResponseNetworkAction(server, observer);
     //}   
-  }
+  //}
   
   public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
     System.out.println("RCam Coordinator - ReceivedCommandState - this is the command name: ["+actionSubject.getCommandName()+"]");
@@ -62,6 +62,10 @@ public class ReceivedCommandState extends ACommandState {
   public ICommandResponseAction getRelatedCommandResponseAction() {
     return relatedCommandAction;
   }
+
+  ICommandResponseAction runCommandAction;
+  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
   
 }

@@ -16,7 +16,7 @@ public class CommandReadyToReduceState extends ACommandState {
   ICommandResponseAction relatedCommandAction;
   
   public CommandReadyToReduceState() {
-    setNetworkResponseAction(new ReduceCommandResponseAction());
+    setRunCommandResponseAction(new ReduceCommandResponseAction());
   }
   
   public void nextState(String server, ACommand actionSubject) {}
@@ -39,6 +39,11 @@ public class CommandReadyToReduceState extends ACommandState {
   public ICommandResponseAction getRelatedCommandResponseAction() {
     return relatedCommandAction;
   }
+  
+  ICommandResponseAction runCommandAction;
+  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
+
 
   
   

@@ -13,6 +13,7 @@ public class AckedState extends ACommandState {
   ICommandResponseAction networkResponseAction;
   ICommandResponseAction relatedCommandAction;
   
+  
   public void nextState(String server, ACommand actionSubject) {}
   
   
@@ -34,7 +35,8 @@ public class AckedState extends ACommandState {
     return relatedCommandAction;
   }
 
-  
-  
+  ICommandResponseAction runCommandAction;
+  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
 }

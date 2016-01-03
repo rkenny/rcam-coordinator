@@ -9,24 +9,23 @@ public abstract class ACommandState implements ICommandState {
   public ACommandState() {
     setNetworkResponseAction(new DefaultCommandResponseAction());
     setRelatedCommandResponseAction(new DefaultCommandResponseAction());
+    setRunCommandResponseAction(new DefaultCommandResponseAction());
   }
   
   
   public void doNetworkAction(Observer actionObserver, String server, ACommand actionSubject) {
     System.out.println("RCam Coordinator - " + getClass().getSimpleName() + " - Telling "+actionObserver.getClass().getSimpleName()  +" to doStuff to " + actionSubject.getAckNumber());
     getNetworkResponseAction().doStuff(actionObserver, server, actionSubject);
-    
-    //this.nextState(server, actionSubject);
-  //this.doNetworkStuff(actionObserver, server, actionSubject);
-    
   }
   
   public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
     System.out.println("RCam Coordinator - " + getClass().getSimpleName() + " - Telling "+ actionObserver.getClass().getSimpleName() + " to doStuff to related commands");
     getRelatedCommandResponseAction().doStuff(actionObserver, server, actionSubject);
-    //this.doRelatedCommandStuff(actionObserver, server, actionSubject);
-    //actionSubject.performCommandResponseRelatedAction(server, actionObserver);
-    //this.nextState(server, actionSubject);
+  }
+  
+  public void doRunCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
+    System.out.println("RCam Coordinator - " + getClass().getSimpleName() + " - Telling "+ actionObserver.getClass().getSimpleName() + " to doStuff to Command(" + actionSubject.getCommandName()+"["+actionSubject.getAckNumber()+"])");
+    getRunCommandResponseAction().doStuff(actionObserver, server, actionSubject);
   }
   
   @Override
