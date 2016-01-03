@@ -1,12 +1,11 @@
 package tk.bad_rabbit.rcam.distributed_backend.command;
 
 import java.nio.CharBuffer;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import tk.bad_rabbit.rcam.app.Pair;
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 
@@ -54,5 +53,5 @@ public interface ICommand  {
   
   public Boolean isReadyToReduce();
   
-  public Callable<Pair<Integer, Integer>> reduce();
+  public Callable<Map.Entry<Integer, Integer>> reduce();
 }

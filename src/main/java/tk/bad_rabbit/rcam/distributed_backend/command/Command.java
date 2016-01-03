@@ -9,17 +9,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.json.JSONObject;
 
 import tk.bad_rabbit.rcam.app.Pair;
-import tk.bad_rabbit.rcam.coordinator.server.ServerThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
@@ -230,12 +226,12 @@ public class Command extends ACommand {
     return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
   }
   
-  public Callable<Pair<Integer, Integer>> reduce() {
+  public Callable<Map.Entry<Integer, Integer>> reduce() {
     final Integer commandAckNumber = this.commandAckNumber;
     final String[] command = {commandConfiguration.getString("reductionCommand")};
-    class ReductionCommand implements  Callable<Pair<Integer, Integer>> {
+    class ReductionCommand implements  Callable<Map.Entry<Integer, Integer>> {
 
-      public Pair<Integer, Integer> call() throws Exception {
+      public Map.Entry<Integer, Integer> call() throws Exception {
 
         ProcessBuilder pb = new ProcessBuilder(command);
         
@@ -261,7 +257,7 @@ public class Command extends ACommand {
             e.printStackTrace();
         }
          
-        return new Pair<Integer, Integer>(commandAckNumber, exitValue);
+        return new AbstractMap.SimpleEntry<Integer, Integer>(commandAckNumber, exitValue);
         
       }
     }
