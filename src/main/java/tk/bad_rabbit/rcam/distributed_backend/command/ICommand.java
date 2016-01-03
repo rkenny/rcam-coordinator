@@ -23,16 +23,22 @@ public interface ICommand  {
   public Object getClientVariable(String variableName);
   public Object getServerVariable(String variableName);
   
-  public void setCommandResponseRelatedAction(ACommandResponseAction newAction);
-  public void performCommandResponseNetworkAction(String server, Observer actionObject);
-  public void performCommandResponseRelatedAction(String server, Observer actionObject);
+  public void doNetworkAction(Observer actionObserver, String server);
+  public void doRelatedCommandAction(Observer actionObserver, String server);
+  
+  //public void setCommandResponseRelatedAction(ACommandResponseAction newAction);
+  //public void performCommandResponseNetworkAction(String server, Observer actionObject);
+  //public void performCommandResponseRelatedAction(String server, Observer actionObject);
 
   public Boolean isType(String commandType);
   
+  public ICommandState getState(String server);
   public void setState(ICommandState state);
+  public void setState(String server, ICommandState state);
+  
   public void setServers(Set<String> servers);
   
-  public void setState(String server, ICommandState state);
+  
 
   
   public Boolean stateEquals(String server, ICommandState comparisonState);
@@ -42,8 +48,8 @@ public interface ICommand  {
   public void setReturnCode(Integer returnCode);
   public Integer getReturnCode();
 
-  public void doNetworkAction(Observer actionObject, String server);
-  public void doRelatedCommandAction(Observer actionObserver, ACommand relatedCommand);
+  //public void doNetworkAction(Observer actionObject, String server);
+  // public void doRelatedCommandAction(Observer actionObserver, ACommand relatedCommand);
   
   public Boolean isReadyToReduce();
   

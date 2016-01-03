@@ -83,11 +83,16 @@ public class CommandController implements Observer {
       System.out.println("RCam Coordinator - CommandController - Updating a related command on server " + server);
       System.out.println("RCam Coordinator - CommandController - updating related command with ackNumber " + updatedCommand.getAckNumber());
       System.out.println("RCam Coordinator - CommandController - updating related command with variable ackNumber " + updatedCommand.getClientVariable("ackNumber"));
+
+      updatedCommand.doRelatedCommandAction(this, server);
+      
+      
       //if(updatedCommand.getClientVariable("ackNumber") != null) {
         //relatedCommand = commandMap.get(updatedCommand.getClientVariable("ackNumber"));
         
       //}
-      updatedCommand.performCommandResponseRelatedAction(server, commandMap.get(updatedCommand.getClientVariable("ackNumber")));
+      //updatedCommand.performCommandResponseRelatedAction(server, commandMap.get(updatedCommand.getClientVariable("ackNumber")));
+
       
     } //<ACommand, Entry<String, ICommandState>>
     //ACommand relatedCommand = getCommand((Integer) arg);

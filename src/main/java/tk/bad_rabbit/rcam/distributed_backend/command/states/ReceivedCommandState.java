@@ -3,7 +3,9 @@ package tk.bad_rabbit.rcam.distributed_backend.command.states;
 import java.util.Observer;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
-import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ResultCommandResponseAction;
 
 
 public class ReceivedCommandState extends ACommandState {
@@ -14,15 +16,52 @@ public class ReceivedCommandState extends ACommandState {
 //    }
   //}
   
-  public void doNetworkStuff(Observer observer, String server, ACommand actionSubject) {
-    synchronized(actionSubject) {
-      actionSubject.performCommandResponseNetworkAction(server, observer);
-    }   
+  public void doRelatedNetworkAction(Observer observer, String server, ACommand actionSubject) {
+    //synchronized(actionSubject) {
+    //  actionSubject.performCommandResponseNetworkAction(server, observer);
+    //}   
   }
   
-  public void doRelatedCommandStuff(Observer actionObserver, String server, ACommand actionSubject) {
-    actionSubject.performCommandResponseRelatedAction(server, actionObserver);
+  public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
+    System.out.println("RCam Coordinator - ReceivedCommandState - this is the command name: ["+actionSubject.getCommandName()+"]");
+    // feels like there's a better way to handle these two commands.
+    if(actionSubject.getCommandName().equals("Ack")) {
+      setRelatedCommandResponseAction(new AckCommandResponseAction());
+    }
+    if(actionSubject.getCommandName().equals("CommandResult")) {
+      setRelatedCommandResponseAction(new ResultCommandResponseAction());
+    }
+    
+    getRelatedCommandResponseAction().doStuff(actionObserver, server, actionSubject);
+  }
+  
+  ICommandResponseAction networkResponseAction;
+  ICommandResponseAction relatedCommandAction;
+  
+  public ReceivedCommandState() {
+    
   }
   
   public void nextState(String server, ACommand actionSubject) {}
+  
+  
+  public ICommandResponseAction getNetworkResponseAction() {
+    return networkResponseAction;
+  }
+  
+  public void setNetworkResponseAction(ICommandResponseAction newNetworkResponseAction) {
+    this.networkResponseAction = newNetworkResponseAction;
+  }
+  
+  
+  public void setRelatedCommandResponseAction(ICommandResponseAction newRelatedCommandResponseAction) {
+    this.relatedCommandAction = newRelatedCommandResponseAction;
+  }
+  
+  
+  public ICommandResponseAction getRelatedCommandResponseAction() {
+    return relatedCommandAction;
+  }
+
+  
 }

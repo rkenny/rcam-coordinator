@@ -30,10 +30,8 @@ public class Command extends ACommand {
   private Integer commandAckNumber;
   
   private JSONObject clientVariables;
-  private JSONObject commandConfiguration; // this would probably be better as a set of interfaces.
+  private JSONObject commandConfiguration;
   private JSONObject serverVariables;
-  
-  private ACommandResponseAction commandResponseAction;
   
   private volatile Map<String, ICommandState> state;
   
@@ -55,30 +53,33 @@ public class Command extends ACommand {
     this.origin = origin;
   }
   
-  public synchronized void update(Observable updatedClient, Object serverWithPort) {
-    if(updatedClient instanceof ServerThread) {
-      System.out.println("The server needs to set a command into error state if it's not connected to "+  serverWithPort );
-      //((ServerThread) updatedClient).doAction(this);      
-    }
-  }
+//  public synchronized void update(Observable updatedClient, Object serverWithPort) {
+//    if(updatedClient instanceof ServerThread) {
+//      System.out.println("The server needs to set a command into error state if it's not connected to "+  serverWithPort );
+//    }
+//  }
   
   
-  public void performCommandResponseRelatedAction(String server, Observer actionObject) {
-    System.out.println("RCam Coordinator - Command - Calling performCommandResponseRelatedAction for " + this.getCommandName() + "[" + this.getAckNumber() + "]("+server+")");
+  //public void performCommandResponseRelatedAction(String server, Observer actionObject) {
+  //  System.out.println("RCam Coordinator - Command - Calling performCommandResponseRelatedAction for " + this.getCommandName() + "[" + this.getAckNumber() + "]("+server+")");
     //System.out.println("RCam Coordinator - Command - on " + ((ACommand) actionObject).getAckNumber());
-    this.commandResponseAction.doRelatedCommandAction(actionObject, server, this);
-  }
+  //  this.commandResponseRelatedAction.doRelatedCommandAction(actionObject, server, this);
+  //}
   
-  public void setCommandResponseRelatedAction(ACommandResponseAction newAction) {
-    System.out.println("RCam Coordinator - Command - Setting commandResponseRelatedAction to " + newAction.getClass().getSimpleName());
-    this.commandResponseAction = newAction;
-  }
+  //public void setCommandResponseRelatedAction(ACommandResponseAction newAction) {
+  //  System.out.println("RCam Coordinator - Command - Setting commandResponseRelatedAction to " + newAction.getClass().getSimpleName());
+  //  this.commandResponseRelatedAction = newAction;
+  //}
   
-  public void performCommandResponseNetworkAction(String server, Observer actionObject) {
-    System.out.println("RCam Coordinator - Command - Calling performCommandResponseNetworkAction");
-    this.commandResponseAction.doNetworkAction(actionObject, server, this);
-  }
+  //public void performCommandResponseNetworkAction(String server, Observer actionObject) {
+  //  System.out.println("RCam Coordinator - Command - Calling performCommandResponseNetworkAction");
+  //  this.commandResponseAction.doNetworkAction(actionObject, server, this);
+ // }
   
+  //public synchronized void doNetworkAction(Observer actionObject, String client) {
+  //  state.get(client).doNetworkAction(actionObject, client, this);
+  //}
+    
   public Command() {
     this.state = new HashMap<String, ICommandState>();
   }
@@ -91,7 +92,8 @@ public class Command extends ACommand {
     this.commandAckNumber = commandAckNumber;
     this.clientVariables = clientVariables;
     this.serverVariables = serverVariables;
-    this.commandResponseAction = commandResponseAction;
+    //this.commandResponseAction = commandResponseAction;
+    //this.commandResponseRelatedAction = commandResponseAction;
     
     System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - created");
   }
@@ -116,6 +118,10 @@ public class Command extends ACommand {
       String s = i.next();
       state.put(s, null);
     }
+  }
+  
+  public ICommandState getState(String server) {
+    return this.state.get(server);
   }
   
   public void setState(ICommandState newState) {
@@ -165,13 +171,7 @@ public class Command extends ACommand {
     //setAllServersState(new CommandReducedState());
   //}
   
-  public synchronized void doNetworkAction(Observer actionObject, String client) {
-    state.get(client).doNetworkAction(actionObject, client, this);
-  }
-  
-  public synchronized void doRelatedCommandAction(Observer actionObserver, ACommand relatedCommand) {
-    
-  }
+
   
 
   public Boolean isType(String commandType) {

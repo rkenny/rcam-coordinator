@@ -29,10 +29,21 @@ import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
 @Controller
 @Scope("singleton")
-public class RunController { // implements Observer {
+public class RunController implements Observer {
 //  boolean running;
-//  ExecutorService commandExecutor;
-//  List<Future<Pair<Integer, Integer>>> commandResults;
+  ExecutorService commandExecutor;
+  List<Future<Pair<Integer, Integer>>> commandResults;
+  
+  @PostConstruct
+  public void initializeRunController() {
+    this.commandExecutor = Executors.newFixedThreadPool(5);
+    commandResults = new ArrayList<Future<Pair<Integer, Integer>>>();
+  }
+  
+  public void update(Observable updatedCommand, Object arg) {
+    
+  }
+  
 //  
 //  ConcurrentHashMap<String, ConcurrentHashMap<Integer, ACommand>> commandList;
 //  
@@ -53,9 +64,7 @@ public class RunController { // implements Observer {
 //    if(commandCanBeReduced(server, ackNumber)) { 
 //      commandList.get(server).get(ackNumber).setReturnCode(resultCode);
 //      commandList.get(server).get(ackNumber).setState(server, new CommandCompletedState());
-//      
 //    }    
-//
 //  }
 //
 //  private boolean commandCanBeReduced(String server, Integer ackNumber) {
@@ -115,11 +124,7 @@ public class RunController { // implements Observer {
 //    command.addObserver(this);
 //  }
 //  
-//  @PostConstruct
-//  public void initializeRunController() {
-//    this.commandExecutor = Executors.newFixedThreadPool(5);
-//    commandResults = new ArrayList<Future<Pair<Integer, Integer>>>();
-//  }
+
 //  
 //  public void update(Observable updatedCommand, Object arg) {
 //    
