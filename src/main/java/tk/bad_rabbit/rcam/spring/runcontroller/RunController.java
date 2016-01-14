@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import tk.bad_rabbit.rcam.app.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandCompletedState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
@@ -33,12 +32,12 @@ import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 public class RunController implements Observer {
 //  boolean running;
   ExecutorService commandExecutor;
-  List<Future<Pair<Integer, Integer>>> commandResults;
+  List<Future<Map.Entry<Integer, Integer>>> commandResults;
   
   @PostConstruct
   public void initializeRunController() {
     this.commandExecutor = Executors.newFixedThreadPool(5);
-    commandResults = new ArrayList<Future<Pair<Integer, Integer>>>();
+    //commandResults = new ArrayList<Future<Map.Entry<Integer, Integer>>>();
   }
   
   public void update(Observable o, Object arg) {
@@ -58,8 +57,11 @@ public class RunController implements Observer {
     } 
   }
   
-  public void reduce(ACommand command) {
+  public Future<Map.Entry<Integer, Integer>> reduce(ACommand command) {
     System.out.println("This will reduce Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
+    System.out.println("When the callable completes, the Command will update its state to CommandReducedState");
+    return commandExecutor.submit(command.reduce());
+    
   }
   
 //  

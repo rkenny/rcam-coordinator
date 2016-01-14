@@ -2,23 +2,13 @@ package tk.bad_rabbit.rcam.distributed_backend.command.states;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.SendReductionCompleteNetworkAction;
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.SetRelatedCommandsToDoneResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.SetRelatedCommandsToReduceRunningResponseAction;
 
-public class CommandReducedState extends ACommandState {
-
-  //public void doAction(Observer observer, String server, ACommand actionSubject) {
-  //  if(observer instanceof ClientThread) {
-  //    ((ClientThread) observer).removeCommand((ACommand) actionSubject);
-  //  }
-  //}
+public class CommandReduceRunningState extends ACommandState {
   
   
-  
-  
-  public CommandReducedState() {
-    setRelatedCommandResponseAction(new SetRelatedCommandsToDoneResponseAction());
-    setNetworkResponseAction(new SendReductionCompleteNetworkAction());
+  public CommandReduceRunningState() {
+    setRelatedCommandResponseAction(new SetRelatedCommandsToReduceRunningResponseAction());
   }
   
   public void nextState(String server, ACommand actionSubject) {}
@@ -35,7 +25,5 @@ public class CommandReducedState extends ACommandState {
   ICommandResponseAction runCommandAction;
   public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
   public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
-
-  
 
 }

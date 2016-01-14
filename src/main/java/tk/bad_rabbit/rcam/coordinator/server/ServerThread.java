@@ -250,7 +250,12 @@ public class ServerThread extends Observable implements Runnable, Observer  {
    System.out.println("RCam Coordinator -ServerThread("+selectedChannel.getRemoteAddress().toString().substring(1)+")  " + charBuffer.toString());
    buffer.clear();
  }
-  
+ 
+ public void sendReductionComplete(ACommand command) {
+   System.out.println("RCam Coordinator - ServerThread - All Servers - Will send a ReductionComplete for Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
+   send(commandFactory.createReductionCompleteCommand(command));
+ }
+ 
  public void send(ACommand command) {
    Iterator<SelectionKey> keyIterator = serverSelector.selectedKeys().iterator();
    

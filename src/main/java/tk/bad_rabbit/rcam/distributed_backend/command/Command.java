@@ -252,7 +252,7 @@ public class Command extends ACommand {
         try {
           exitValue = process.waitFor();
           commandConfiguration.put("returnCode", Integer.toString(exitValue));
-
+          System.out.println("RCam Coordinator - Command - Reduction Complete - The state of the command needs to move to CommandReducedState.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.DefaultCommandResponseAction;
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ReductionCompleteCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ResultCommandResponseAction;
 
 @Component(value="configurationProvider")
@@ -64,11 +64,19 @@ public class ConfigurationProvider implements IConfigurationProvider {
     cancelConfiguration.put("clientVars", cancelClientVars);
     cancelConfiguration.put("commandVars", new JSONObject("{ignored: true}"));
     addSystemCommand("Cancel", cancelConfiguration, new DefaultCommandResponseAction());
+    
+    JSONObject reductionCompleteCommand = new JSONObject();
+    JSONArray reductionCompleteVars = new JSONArray();
+    reductionCompleteVars.put("ackNumber");
+    reductionCompleteVars.put("command");
+    reductionCompleteCommand.put("clientVars", reductionCompleteVars);
+    reductionCompleteCommand.put("commandVars", new JSONObject("{ignored: true}"));
+    addSystemCommand("ReductionComplete", reductionCompleteCommand, new ReductionCompleteCommandResponseAction());
   }
   
   private void addSystemCommand(String commandType, JSONObject commandConfiguration, ACommandResponseAction commandResponseAction) {
     commandConfigurations.put(commandType, commandConfiguration);
-    commandResponseActions.put(commandType, commandResponseAction);
+    commandResponseActions.put(commandType, commandResponseAction); // This isn't used anymore?
   }
      
   private void readClientsConfiguration() {

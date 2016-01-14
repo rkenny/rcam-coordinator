@@ -32,6 +32,7 @@ public class ReceivedCommandState extends ACommandState {
       setRelatedCommandResponseAction(new ResultCommandResponseAction());
     }
     
+    
     getRelatedCommandResponseAction().doStuff(actionObserver, server, actionSubject);
   }
   

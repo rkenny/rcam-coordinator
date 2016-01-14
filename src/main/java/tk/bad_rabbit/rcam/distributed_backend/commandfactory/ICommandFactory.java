@@ -13,5 +13,5 @@ public interface ICommandFactory {
   
   ACommand createAckCommand(ACommand incomingCommand);
   ACommand createCancelCommand(ACommand command);
-
+  ACommand createReductionCompleteCommand(ACommand command);
 }

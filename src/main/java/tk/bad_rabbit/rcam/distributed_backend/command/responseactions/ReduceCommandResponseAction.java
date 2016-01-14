@@ -1,6 +1,9 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.responseactions;
 
+import java.util.Map;
 import java.util.Observer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
@@ -17,8 +20,16 @@ public class ReduceCommandResponseAction extends ACommandResponseAction {
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
     System.out.println("RCam Coordinator - " + this.getClass().getSimpleName() + " - " + actionObject.getClass().getSimpleName() + " will tell Command("+actionSubject.getCommandName()+"["+actionSubject.getAckNumber()+"]) to run");
     if(actionSubject.isReadyToReduce()) {
-      ((RunController) actionObject).reduce(actionSubject);
-      nextState(server, actionSubject);
+      Future<Map.Entry<Integer, Integer>> reductionResult = ((RunController) actionObject).reduce(actionSubject);
+      try {
+        reductionResult.get();
+        nextState(server, actionSubject);
+      } catch(InterruptedException e) {
+        e.printStackTrace();
+      } catch(ExecutionException e) {
+        e.printStackTrace();
+      }
+      
     }
   }
 

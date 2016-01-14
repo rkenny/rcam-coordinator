@@ -96,6 +96,14 @@ public class CommandFactory implements ICommandFactory {
       
     }
     
+    public ACommand createReductionCompleteCommand(ACommand command) {
+      JSONObject commandVariables = new JSONObject();
+      commandVariables.put("command", command.getCommandName());
+      commandVariables.put("ackNumber", command.getAckNumber());
+      
+      return createCommand("ReductionComplete", commandVariables);
+    }
+    
    
     public String getCommandType(String commandString) {
       int commandTypeLength = commandString.indexOf("{") > 0 ? commandString.indexOf("{") : commandString.length();
