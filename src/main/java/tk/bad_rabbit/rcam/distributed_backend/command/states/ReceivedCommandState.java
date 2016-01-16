@@ -24,6 +24,10 @@ public class ReceivedCommandState extends ACommandState {
   
   public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
     System.out.println("RCam Coordinator - ReceivedCommandState - this is the command name: ["+actionSubject.getCommandName()+"]");
+    System.out.println("RCam Coordinator - This will happen on the following observer: " + actionObserver.getClass().getSimpleName());
+    //actionSubject.addObserver(actionObserver);
+    //actionSubject.setState(server, new ReadyToHandleState());
+    
     // feels like there's a better way to handle these two commands.
     if(actionSubject.getCommandName().equals("Ack")) {
       setRelatedCommandResponseAction(new AckCommandResponseAction());

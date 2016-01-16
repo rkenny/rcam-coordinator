@@ -37,7 +37,7 @@ public abstract class ACommandState implements ICommandState {
   }  
   
   public Boolean typeEquals(ICommandState comparisonState) {
-    return this.equals(comparisonState);
+    return this.getClass().getSimpleName().equals(comparisonState.getClass().getSimpleName());
   }
 
 }

@@ -23,6 +23,7 @@ public class ReduceCommandResponseAction extends ACommandResponseAction {
       Future<Map.Entry<Integer, Integer>> reductionResult = ((RunController) actionObject).reduce(actionSubject);
       try {
         reductionResult.get();
+        actionSubject.deleteObserver(actionObject);
         nextState(server, actionSubject);
       } catch(InterruptedException e) {
         e.printStackTrace();

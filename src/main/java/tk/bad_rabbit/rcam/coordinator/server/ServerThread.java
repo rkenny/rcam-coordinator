@@ -69,6 +69,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   
   public void injectObserver(Observer newObserver) {
     this.observers.add(newObserver);
+    //this.addObserver(newObserver);
   }
   
   public Set<String> getConnectedServers() {
@@ -88,7 +89,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
         if(arg instanceof ICommandState) {
           updatedCommand.doNetworkAction(this, rC);
         }
-      
         
         if(arg instanceof Map.Entry) {
           Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandStateMap = (Map.Entry<ACommand, Map.Entry<String, ICommandState>> ) arg;
@@ -179,6 +179,10 @@ public class ServerThread extends Observable implements Runnable, Observer  {
         newSocketChannel.register(serverSelector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
         System.out.println("RCam Coordinator - ServerThread - The remote address is " + newSocketChannel.getRemoteAddress().toString().substring(1));
         socketChannels.put(newSocketChannel.getRemoteAddress().toString().substring(1), newSocketChannel);
+        
+        setChanged();
+        notifyObservers(newSocketChannel.getRemoteAddress().toString().substring(1));
+        
       }
       
       serverKeyIterator.remove();
@@ -200,8 +204,8 @@ public class ServerThread extends Observable implements Runnable, Observer  {
            if(newCommand != null) {
              newCommand.addObservers(observers);
              
-             newCommand.setServers(getConnectedServers());
-             newCommand.setState(new ReceivedCommandState());
+             //newCommand.setServers(getConnectedServers());
+             newCommand.setState(socketChannel.getRemoteAddress().toString().substring(1), new ReceivedCommandState());
            }
          }
        }

@@ -8,6 +8,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Observer;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -96,6 +97,10 @@ public class Command extends ACommand {
     }
   }
   
+  public Set<String> getServers() {
+    return state.keySet();
+  }
+  
   public ICommandState getState(String server) {
     return this.state.get(server);
   }
@@ -139,17 +144,6 @@ public class Command extends ACommand {
     }
   }
   
-  //public synchronized void setErrorState() {
-    //setAllServersState(new ErrorCommandState());
-  //}
-  
-  //public synchronized void setReducedState() {
-    //setAllServersState(new CommandReducedState());
-  //}
-  
-
-  
-
   public Boolean isType(String commandType) {
     return this.commandName.equals(commandType);
   }
@@ -159,7 +153,7 @@ public class Command extends ACommand {
   }
   
   public Boolean isReadyToReduce() {
-    
+    System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce called");
     Iterator<Entry<String, ICommandState>> serversIterator = this.state.entrySet().iterator();
     CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
     
@@ -168,15 +162,17 @@ public class Command extends ACommand {
       
       if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
         if(serverState.typeEquals(readyToReduceState)) {
+          System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning true because the first server is ready to reduce.");
           return true;
         }
       }
      
       if(!serverState.typeEquals(readyToReduceState)) {
+        System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning false because a server is not ready to reduce.");
         return false;
       }
     }
-    
+    System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning true because all servers are ready to reduce.");
     return true;
   }
   

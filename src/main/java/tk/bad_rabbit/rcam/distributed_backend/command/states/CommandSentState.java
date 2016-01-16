@@ -8,8 +8,6 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class CommandSentState extends ACommandState {
 
-  
-
   public void nextState(String server, ACommand actionSubject) {
     actionSubject.setState(server, new AwaitingAckState());
   }
@@ -17,9 +15,7 @@ public class CommandSentState extends ACommandState {
   
   ICommandResponseAction networkResponseAction;
   ICommandResponseAction relatedCommandAction;
-  
-  //public void nextState(String server, ACommand actionSubject) {}
-  
+  ICommandResponseAction runCommandAction;
   
   public ICommandResponseAction getNetworkResponseAction() {
     return networkResponseAction;
@@ -39,7 +35,7 @@ public class CommandSentState extends ACommandState {
     return relatedCommandAction;
   }
 
-  ICommandResponseAction runCommandAction;
+  
   public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
   public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 

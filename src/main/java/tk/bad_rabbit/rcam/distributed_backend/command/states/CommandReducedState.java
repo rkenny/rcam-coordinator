@@ -12,9 +12,9 @@ public class CommandReducedState extends ACommandState {
   //    ((ClientThread) observer).removeCommand((ACommand) actionSubject);
   //  }
   //}
-  
-  
-  
+  ICommandResponseAction networkResponseAction;
+  ICommandResponseAction relatedCommandAction;
+  ICommandResponseAction runCommandAction;
   
   public CommandReducedState() {
     setRelatedCommandResponseAction(new SetRelatedCommandsToDoneResponseAction());
@@ -23,16 +23,16 @@ public class CommandReducedState extends ACommandState {
   
   public void nextState(String server, ACommand actionSubject) {}
   
-  ICommandResponseAction networkResponseAction;
+  
   public ICommandResponseAction getNetworkResponseAction() { return networkResponseAction; }
   public void setNetworkResponseAction(ICommandResponseAction newNetworkResponseAction) {this.networkResponseAction = newNetworkResponseAction; }
   
   
-  ICommandResponseAction relatedCommandAction;
+  
   public ICommandResponseAction getRelatedCommandResponseAction() { return relatedCommandAction; }
   public void setRelatedCommandResponseAction(ICommandResponseAction newRelatedCommandResponseAction) { this.relatedCommandAction = newRelatedCommandResponseAction; }
 
-  ICommandResponseAction runCommandAction;
+  
   public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
   public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 

@@ -29,6 +29,8 @@ public class Server {
     serverThread.injectObserver(commandController);
     serverThread.injectObserver(serverThread);
     
+    serverThread.addObserver(commandController);
+    
     serverThread.start();
   }
   

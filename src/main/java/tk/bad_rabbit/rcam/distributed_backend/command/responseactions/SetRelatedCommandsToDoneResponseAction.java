@@ -14,6 +14,8 @@ public class SetRelatedCommandsToDoneResponseAction extends ACommandResponseActi
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
     System.out.println("RCam Coordinator - " + this.getClass().getSimpleName() + " - will set the state of Command("+actionSubject.getCommandName()+"["+actionSubject.getAckNumber()+"]) to DoneState.");
+    System.out.println("RCam Coordinator - " + this.getClass().getSimpleName() + " - will deleteObserver(CommandController)");
+    actionSubject.deleteObserver(actionObject);
     nextState(server, actionSubject);
   }
 
