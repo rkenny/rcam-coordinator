@@ -15,7 +15,6 @@ import java.util.concurrent.Callable;
 
 import org.json.JSONObject;
 
-import tk.bad_rabbit.rcam.app.Pair;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
@@ -42,13 +41,6 @@ public class Command extends ACommand {
     return this.returnCode;
   }
  
-  
-  
-//  public synchronized void update(Observable updatedClient, Object serverWithPort) {
-//    if(updatedClient instanceof ServerThread) {
-//      System.out.println("The server needs to set a command into error state if it's not connected to "+  serverWithPort );
-//    }
-//  }
   
     
   public Command() {
@@ -107,20 +99,11 @@ public class Command extends ACommand {
   
   
   public synchronized void setState(String client, ICommandState state) {
-    //System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - SetState called for " + client + " state " + state.getClass().getSimpleName());
-    //if(this.state.get(client) == null || !this.state.get(client).equals(new ErrorCommandState()) )  { 
     
-      this.state.put(client,  state);
-      
-      //Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(client, state);
-      //Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
-      
-      //Entry<ACommand, String> commandDetails = new AbstractMap.SimpleEntry<ACommand, String>(this, client);
-      
-      setChanged();
-      notifyObservers(client);
-     
-    //}
+    this.state.put(client,  state);
+    setChanged();
+    notifyObservers(client);
+    
     return;
   }
   
@@ -146,7 +129,6 @@ public class Command extends ACommand {
   }
   
   public Boolean isReadyToReduce() {
-    //System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce called");
     Iterator<Entry<String, ICommandState>> serversIterator = this.state.entrySet().iterator();
     CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
     
@@ -155,17 +137,14 @@ public class Command extends ACommand {
       
       if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
         if(serverState.typeEquals(readyToReduceState)) {
-          //System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning true because the first server is ready to reduce.");
           return true;
         }
       }
      
       if(!serverState.typeEquals(readyToReduceState)) {
-        //System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning false because a server is not ready to reduce.");
         return false;
       }
     }
-    System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning true because all servers are ready to reduce.");
     return true;
   }
   
@@ -238,10 +217,7 @@ public void setupEnvironment(Map<String, String> environment) {
   }
   
   public Callable<Map.Entry<Integer, Integer>> reduce() {
-    
-    
     class ReductionCommand implements  Callable<Map.Entry<Integer, Integer>> {
-
       public Map.Entry<Integer, Integer> call() throws Exception {
 
         ProcessBuilder pb = new ProcessBuilder(commandConfiguration.getString("reductionCommand"));
@@ -264,7 +240,6 @@ public void setupEnvironment(Map<String, String> environment) {
         try {
           exitValue = process.waitFor();
           commandConfiguration.put("returnCode", Integer.toString(exitValue));
-          //System.out.println("RCam Coordinator - Command - Reduction Complete - The state of the command needs to move to CommandReducedState.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
