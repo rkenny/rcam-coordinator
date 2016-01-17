@@ -116,8 +116,6 @@ public class CommandFactory implements ICommandFactory {
     
     public ACommand createCommand(CharBuffer commandBuffer, String server) {
       ACommand command = createCommand(commandBuffer);
-      command.setOrigin(server);
-      
       return command;
     }
     

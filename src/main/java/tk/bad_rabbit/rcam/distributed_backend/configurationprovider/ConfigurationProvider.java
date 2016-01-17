@@ -159,14 +159,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
     }
   }
   
-  public String getHostname() {
-    return "localhost";
-  }
+  //public String getHostname() {
+  //  return "localhost";
+  //}
 
-
-  public String getBaseUrl() {
-    return "/";
-  }
+//
+//  public String getBaseUrl() {
+//    return "/";
+//  }
   
   
   public Iterator<Map.Entry<String, Integer>> getBackendMapIterator() {
@@ -181,9 +181,13 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return serverVariables.get(variable);
   }
   
-  public int getServerPort() {
-    return new Integer(serverVariables.getInt("port")); //Integer.parseInt(serverVariables.getInt("port"));
+  public void setServerVariable(String key, Object value) {
+    this.serverVariables.put(key, value);
   }
+  
+  //public int getServerPort() {
+  //  return new Integer(serverVariables.getInt("port")); //Integer.parseInt(serverVariables.getInt("port"));
+  //}
 
   public Map<String, JSONObject> getCommandConfigurations() {
     return commandConfigurations;
@@ -197,14 +201,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return this.commandConfigurations.get(commandType);
   }
 
-  public List<String> getBackendList() {
-    List<String> backendList = new ArrayList<String>();
-    for(String server : backendInfo.keySet()) {
-      backendList.add(server + ":" + backendInfo.get(server));
-    }
+  //public List<String> getBackendList() {
+  //  List<String> backendList = new ArrayList<String>();
+  //  for(String server : backendInfo.keySet()) {
+  //    backendList.add(server + ":" + backendInfo.get(server));
+   // }
         
-    return backendList;
-  }
+   // return backendList;
+  //}
 
   public ACommandResponseAction getCommandResponseAction(String commandType) {
     return commandResponseActions.get(commandType);

@@ -11,11 +11,11 @@ import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandRe
 
 public interface IConfigurationProvider {
   // This is the coordinator's configuration provider
-  String getHostname();
+  //String getHostname();
 
-  int getServerPort();
+  //int getServerPort();
 
-  String getBaseUrl();
+  //String getBaseUrl();
 
   Iterator<Entry<String, Integer>> getBackendMapIterator();
   
@@ -26,7 +26,8 @@ public interface IConfigurationProvider {
   //public Map<String, JSONObject> getCommandVariables();
   public JSONObject getServerVariables();
   public Object getServerVariable(String variable);
-  public List<String> getBackendList();
+  public void setServerVariable(String key, Object value);
+  //public List<String> getBackendList();
 
   ACommandResponseAction getCommandResponseAction(String commandType);
 }

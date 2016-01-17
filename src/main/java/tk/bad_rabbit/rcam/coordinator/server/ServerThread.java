@@ -47,7 +47,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   @Qualifier("configurationProvider")
   IConfigurationProvider configurationProvider;
   
-  
   List<Observer> observers;
   
   
@@ -55,7 +54,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   Map<String, SocketChannel> socketChannels;
   Selector serverSelector;
   
-  int port;
+  //int port;
   
   CharsetDecoder asciiDecoder;
   CharsetEncoder asciiEncoder;
@@ -69,7 +68,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   
   public void injectObserver(Observer newObserver) {
     this.observers.add(newObserver);
-    //this.addObserver(newObserver);
   }
   
   public Set<String> getConnectedServers() {
@@ -78,7 +76,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   
   public void update(Observable observable, Object arg) {
       ACommand updatedCommand = (ACommand) observable;
-      //System.out.println("RCam Coordinator - ServerThread - Receieved an update for command " + updatedCommand.getAckNumber());
       
       Set<String> connectedClients = socketChannels.keySet();
       Iterator<String> i = connectedClients.iterator();
@@ -100,7 +97,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   }
   
   public void start() {
-    port = (Integer) configurationProvider.getServerVariable("backendConnectPort");
     socketChannels = new HashMap<String, SocketChannel>();
     this.asciiDecoder = Charset.forName("US-ASCII").newDecoder();
     this.asciiEncoder = Charset.forName("US-ASCII").newEncoder();
@@ -108,7 +104,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
     thread.start();
     
     System.out.println("RCam Coordinator - ServerThread will start");
-    System.out.println("RCam Coordinator - ServerThread - port: "+ port );
+    System.out.println("RCam Coordinator - ServerThread - port: "+ (Integer) configurationProvider.getServerVariable("backendConnectPort") );
   }
   
   
@@ -116,7 +112,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   
   public void run() {
     boolean running;
-    System.out.println("Trying to start server on port " + port);
+    
     try {
       initializeServer();
       running = true;
@@ -153,8 +149,11 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   private void initializeServer() throws IOException{
     serverSocketChannel = ServerSocketChannel.open();
     serverSocketChannel.configureBlocking(false);
-    serverSocketChannel.socket().bind(new InetSocketAddress(port));
-   
+    serverSocketChannel.socket().bind(new InetSocketAddress((Integer) configurationProvider.getServerVariable("backendConnectPort")));
+    
+    Integer cI = serverSocketChannel.getLocalAddress().toString().indexOf(":");
+    configurationProvider.setServerVariable("backendConnectAddress", serverSocketChannel.toString().substring(1, cI));
+    
     serverSelector = Selector.open();
     serverSocketChannel.register(serverSelector, SelectionKey.OP_ACCEPT);
   }

@@ -61,13 +61,11 @@ public class CommandController implements Observer {
     observers.add(this);
   }
   
-  @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST,  
-      consumes = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST,  consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<String> createCommand(@PathVariable String commandType, @RequestBody String clientVariables) {
     System.out.println("RCam Coordinator - CommandController - Receieved a request to create " + commandType);
     
-    //clientController.register(commandFactory.createCommand(commandType, new JSONObject(clientVariables)));
     ACommand newCommand = commandFactory.createCommand(commandType, new JSONObject(clientVariables));
     
     commandMap.put(newCommand.getAckNumber(), newCommand);

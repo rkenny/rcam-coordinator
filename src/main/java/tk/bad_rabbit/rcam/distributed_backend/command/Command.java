@@ -23,7 +23,7 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
 public class Command extends ACommand {
   private String commandName;
-  private String origin;
+
   private Integer commandAckNumber;
   
   private JSONObject clientVariables;
@@ -42,13 +42,7 @@ public class Command extends ACommand {
     return this.returnCode;
   }
  
-  public String getOrigin() {
-    return origin;
-  }
   
-  public void setOrigin(String origin) {
-    this.origin = origin;
-  }
   
 //  public synchronized void update(Observable updatedClient, Object serverWithPort) {
 //    if(updatedClient instanceof ServerThread) {
@@ -69,10 +63,7 @@ public class Command extends ACommand {
     this.commandAckNumber = commandAckNumber;
     this.clientVariables = clientVariables;
     this.serverVariables = serverVariables;
-    //this.commandResponseAction = commandResponseAction;
-    //this.commandResponseRelatedAction = commandResponseAction;
-    
-    //System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - created");
+
   }
   
   

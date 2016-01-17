@@ -24,8 +24,8 @@ public class Coordinator {
     
     IConfigurationProvider configurationProvider = new ConfigurationProvider();
     
-    httpServer = prepareHttpServer(configurationProvider.getHostname(), configurationProvider.getServerPort());
-    context = prepareWebappContext(configurationProvider.getBaseUrl());
+    httpServer = prepareHttpServer((String) configurationProvider.getServerVariable("httpServerAddress"), (Integer) configurationProvider.getServerVariable("httpServerPort"));
+    context = prepareWebappContext((String) configurationProvider.getServerVariable("httpServerBaseUrl"));
     
     runHttpSubsystem(httpServer, context);
     waitForExitSignal();
@@ -66,7 +66,6 @@ public class Coordinator {
       httpServer.start();
       System.out.println("Coordinator running");
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       System.out.println("Terminal error. Cannot start http server");
       System.exit(-1);
     }

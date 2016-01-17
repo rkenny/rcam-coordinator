@@ -1,7 +1,7 @@
 #!/bin/sh
 rm ~/partial_vids/grid.mkv
 
-echo "the reduction for Record will complete"
+echo "the reduction for Record will complete on $backendConnectAddress"
 
 ~/ffmpeg_install/ffmpeg-2.8/ffmpeg \
   -i ~/partial_vids/video.101.h264 \
@@ -15,7 +15,7 @@ echo "the reduction for Record will complete"
   " \
   -c:v libx264 ~/partial_vids/grid.mkv
 
-#rm ~/partial_vids/video.10?.h264
+rm ~/partial_vids/video.10?.h264
 echo "Reduction complete. Playing the combined video"
 
 mplayer ~/partial_vids/grid.mkv

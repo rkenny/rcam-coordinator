@@ -15,8 +15,8 @@ public interface ICommand  {
   public Integer getAckNumber();
   public String getCommandName();
   
-  public String getOrigin();
-  public void setOrigin(String origin);
+  //public String getOrigin();
+  //public void setOrigin(String origin);
   
   
   public Object getClientVariable(String variableName);
