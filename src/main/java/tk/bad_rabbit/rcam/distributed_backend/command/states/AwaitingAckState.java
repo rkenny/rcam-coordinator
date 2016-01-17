@@ -12,9 +12,6 @@ public class AwaitingAckState extends ACommandState {
   ICommandResponseAction relatedCommandAction;
   ICommandResponseAction runCommandAction;
   
-  public void nextState(String server, ACommand actionSubject) {}
-  
-  
   public ICommandResponseAction getNetworkResponseAction() {
     return networkResponseAction;
   }

@@ -9,24 +9,8 @@ import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ResultComm
 
 
 public class ReceivedCommandState extends ACommandState {
-
-//  public void doAction(Observer observer, String client, ACommand actionSubject) {
-//    synchronized(actionSubject) {
-//      ((ACommand) actionSubject).performCommandResponseAction(client, observer);
-//    }
-  //}
-  
-  //public void doRelatedNetworkAction(Observer observer, String server, ACommand actionSubject) {
-    //synchronized(actionSubject) {
-    //  actionSubject.performCommandResponseNetworkAction(server, observer);
-    //}   
-  //}
   
   public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
-    System.out.println("RCam Coordinator - ReceivedCommandState - this is the command name: ["+actionSubject.getCommandName()+"]");
-    System.out.println("RCam Coordinator - This will happen on the following observer: " + actionObserver.getClass().getSimpleName());
-    //actionSubject.addObserver(actionObserver);
-    //actionSubject.setState(server, new ReadyToHandleState());
     
     // feels like there's a better way to handle these two commands.
     if(actionSubject.getCommandName().equals("Ack")) {
@@ -43,11 +27,8 @@ public class ReceivedCommandState extends ACommandState {
   ICommandResponseAction networkResponseAction;
   ICommandResponseAction relatedCommandAction;
   
-  public ReceivedCommandState() {
-    
-  }
   
-  public void nextState(String server, ACommand actionSubject) {}
+  
   
   
   public ICommandResponseAction getNetworkResponseAction() {

@@ -11,9 +11,4 @@ public class SendReductionCompleteNetworkAction extends ACommandResponseAction {
     ((ServerThread) actionObject).sendReductionComplete(actionSubject);
   }
 
-  //@Override
-  //public void doRelatedCommandStuff(Observer actionObject, String server, ACommand actionSubject) {
-  //}
-  
-  public void nextState(String server, ACommand command) {}
 }

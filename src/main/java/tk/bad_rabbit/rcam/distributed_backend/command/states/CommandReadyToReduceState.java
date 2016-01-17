@@ -20,8 +20,6 @@ public class CommandReadyToReduceState extends ACommandState {
     setRunCommandResponseAction(new ReduceCommandResponseAction());
   }
   
-  public void nextState(String server, ACommand actionSubject) {}
-  
   
   public ICommandResponseAction getNetworkResponseAction() {
     return networkResponseAction;

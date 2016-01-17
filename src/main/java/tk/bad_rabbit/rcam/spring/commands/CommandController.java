@@ -31,7 +31,6 @@ import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ReadyToSendState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
-//import tk.bad_rabbit.rcam.app.RunController;
 
 @Controller(value="commandController")
 @Scope("singleton")
@@ -48,7 +47,6 @@ public class CommandController implements Observer {
   List<Observer> observers;
   
   Map<Integer, ACommand> commandMap;
-  //Map<String, Observer> commandControllerObservers;
   
   @Autowired
   @Qualifier("commandFactory")
@@ -61,7 +59,6 @@ public class CommandController implements Observer {
     observers.add(serverThread);
     observers.add(runController);
     observers.add(this);
-    //this.commandControllerObservers = new HashMap<String, Observer>();
   }
   
   @RequestMapping(value= "/command/{commandType}", method = RequestMethod.POST,  
@@ -75,15 +72,8 @@ public class CommandController implements Observer {
     
     commandMap.put(newCommand.getAckNumber(), newCommand);
     
-    
-    
     newCommand.addObservers(observers);
-    //for(String server : commandControllerObservers.keySet()) {
-    //  newCommand.addObserver(commandControllerObservers.get(server));
-    //}
-    
-    newCommand.setServers(serverThread.getConnectedServers());
-    
+    newCommand.setServers(serverThread.getConnectedServers());    
     newCommand.setState(new ReadyToSendState());
     
     
@@ -95,34 +85,14 @@ public class CommandController implements Observer {
   }
   
   public void update(Observable o, Object arg) {
-    //if(o instanceof ServerThread) {
-    //  System.out.println("RCam Coordinator - CommandController - Received a notification that there's a new connected server " + arg);
-    //  commandControllerObservers.put((String) arg, new CommandControllerObserver());
-   // }
-    
     
     if(o instanceof ACommand) {
       ACommand newCommand = (ACommand) o;
-      System.out.println("RCam Coordinator - CommandController - Received a notification from Command("+newCommand.getCommandName()+"["+newCommand.getAckNumber()+"])");
+
       Entry<ACommand, Entry<String, ICommandState>> details = (Entry<ACommand, Entry<String, ICommandState>> ) arg;
       String server = details.getValue().getKey();
-      //newCommand = details.getKey();
-      System.out.println("RCam Coordinator - CommandController - Updating a related command on server " + server);
-      System.out.println("RCam Coordinator - CommandController - updating related command with ackNumber " + newCommand.getAckNumber());
-      System.out.println("RCam Coordinator - CommandController - updating related command with variable ackNumber " + newCommand.getClientVariable("ackNumber"));
       
-      //newCommand.addObserver();
-      
-      //newCommand.deleteObserver(this);
       newCommand.doRelatedCommandAction(this, server);
-      //if(newCommand != null && newCommand.isNoLongerNew()) {
-      //  newCommand.deleteObserver(this);
-      //}
-      
-      //for(String server : commandControllerObservers.keySet()) {
-        
-     // }
-      //newCommand.deleteObserver(this);
     } 
   }
 }

@@ -14,9 +14,8 @@ public class SendCommandAction extends ACommandResponseAction {
 
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
-    System.out.println("RCam Coordinator - " + this.getClass().getSimpleName() + " - "+  actionObject.getClass().getSimpleName() + " is going to call serverThread.send()");
     ((ServerThread) actionObject).send(actionSubject);
-    actionSubject.deleteObserver(actionObject);
+    //actionSubject.deleteObserver(actionObject);
     nextState(server, actionSubject);
   }
 

@@ -18,7 +18,6 @@ public class ReduceCommandResponseAction extends ACommandResponseAction {
   
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
-    System.out.println("RCam Coordinator - " + this.getClass().getSimpleName() + " - " + actionObject.getClass().getSimpleName() + " will tell Command("+actionSubject.getCommandName()+"["+actionSubject.getAckNumber()+"]) to run");
     if(actionSubject.isReadyToReduce()) {
       Future<Map.Entry<Integer, Integer>> reductionResult = ((RunController) actionObject).reduce(actionSubject);
       try {

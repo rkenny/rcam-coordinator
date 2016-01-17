@@ -41,15 +41,15 @@ public class RunController implements Observer {
   
   public void update(Observable o, Object arg) {
     ACommand updatedCommand = (ACommand) o;
-    System.out.println("RCam Coordinator - RunController - Receieved an update for command " + updatedCommand.getAckNumber());
+    //System.out.println("RCam Coordinator - RunController - Receieved an update for command " + updatedCommand.getAckNumber());
     
     if(arg instanceof Entry) {
       Entry<ACommand, Entry<String, ICommandState>> details = (Entry<ACommand, Entry<String, ICommandState>> ) arg;
       String server = details.getValue().getKey();
       updatedCommand = details.getKey();
-      System.out.println("RCam Coordinator - RunController - Updating a related command on server " + server);
-      System.out.println("RCam Coordinator - RunController - updating related command with ackNumber " + updatedCommand.getAckNumber());
-      System.out.println("RCam Coordinator - RunController - updating related command with variable ackNumber " + updatedCommand.getClientVariable("ackNumber"));
+      //System.out.println("RCam Coordinator - RunController - Updating a related command on server " + server);
+      //System.out.println("RCam Coordinator - RunController - updating related command with ackNumber " + updatedCommand.getAckNumber());
+      //System.out.println("RCam Coordinator - RunController - updating related command with variable ackNumber " + updatedCommand.getClientVariable("ackNumber"));
 
       updatedCommand.doRunCommandAction(this, server);
       
@@ -57,7 +57,7 @@ public class RunController implements Observer {
   }
   
   public Future<Map.Entry<Integer, Integer>> reduce(ACommand command) {
-    System.out.println("RCam Coordinator - RunController - This will reduce Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
+    //System.out.println("RCam Coordinator - RunController - This will reduce Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
     return commandExecutor.submit(command.reduce());
     
   }

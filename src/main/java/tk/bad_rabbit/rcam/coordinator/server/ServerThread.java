@@ -77,9 +77,9 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   }
   
   public void update(Observable observable, Object arg) {
-    //synchronized(runController) {
       ACommand updatedCommand = (ACommand) observable;
-      System.out.println("RCam Coordinator - ServerThread - Receieved an update for command " + updatedCommand.getAckNumber());
+      //System.out.println("RCam Coordinator - ServerThread - Receieved an update for command " + updatedCommand.getAckNumber());
+      
       Set<String> connectedClients = socketChannels.keySet();
       Iterator<String> i = connectedClients.iterator();
       while(i.hasNext()) {
@@ -236,10 +236,9 @@ public class ServerThread extends Observable implements Runnable, Observer  {
    String[] tokens = returnedBuffer.split("\n");
    
    for(String commandString : tokens) {
-     System.out.println(commandString);
+     //System.out.println(commandString);
      returnedList.add(CharBuffer.wrap(commandString));
    }
-   System.out.println("RCam Coordinator - ServerThread("+selectedChannel.getRemoteAddress().toString().substring(1)+")  read:[" + returnedBuffer.toString() + "]");
    
    return returnedList;
    
@@ -251,12 +250,10 @@ public class ServerThread extends Observable implements Runnable, Observer  {
    while(buffer.hasRemaining()) {
        selectedChannel.write(buffer);
    }
-   System.out.println("RCam Coordinator -ServerThread("+selectedChannel.getRemoteAddress().toString().substring(1)+")  " + charBuffer.toString());
    buffer.clear();
  }
  
  public void sendReductionComplete(ACommand command) {
-   System.out.println("RCam Coordinator - ServerThread - All Servers - Will send a ReductionComplete for Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
    send(commandFactory.createReductionCompleteCommand(command));
  }
  

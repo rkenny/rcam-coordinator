@@ -11,9 +11,6 @@ public class ReductionCompleteCommandResponseAction  extends ACommandResponseAct
     ((RunController) actionObject).reduce(actionSubject);
   }
 
-  //@Override
-  //public void doRelatedCommandStuff(Observer actionObject, String server, ACommand actionSubject) {
-  //}
   
   public void nextState(String server, ACommand command) {}
 }

@@ -22,8 +22,6 @@ public interface ICommandState {
   public void doRunCommandAction(Observer actionObserver, String server, ACommand actionSubject);
   
   abstract void nextState(String server, ACommand actionSubject);
-  //abstract void doNetworkStuff(Observer actionObserver, String server, ACommand actionSubject);
-  //abstract void doRelatedCommandStuff(Observer actionObserver, String server, ACommand actionSubject);
   
   public Boolean typeEquals(ICommandState comparisonState);
 }

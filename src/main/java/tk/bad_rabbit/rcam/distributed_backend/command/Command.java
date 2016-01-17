@@ -72,7 +72,7 @@ public class Command extends ACommand {
     //this.commandResponseAction = commandResponseAction;
     //this.commandResponseRelatedAction = commandResponseAction;
     
-    System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - created");
+    //System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - created");
   }
   
   
@@ -116,7 +116,7 @@ public class Command extends ACommand {
   
   
   public synchronized void setState(String client, ICommandState state) {
-    System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - SetState called for " + client + " state " + state.getClass().getSimpleName());
+    //System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - SetState called for " + client + " state " + state.getClass().getSimpleName());
     if(this.state.get(client) == null || !this.state.get(client).equals(new ErrorCommandState()) )  { 
     
       this.state.put(client,  state);
@@ -153,7 +153,7 @@ public class Command extends ACommand {
   }
   
   public Boolean isReadyToReduce() {
-    System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce called");
+    //System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce called");
     Iterator<Entry<String, ICommandState>> serversIterator = this.state.entrySet().iterator();
     CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
     
@@ -162,13 +162,13 @@ public class Command extends ACommand {
       
       if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
         if(serverState.typeEquals(readyToReduceState)) {
-          System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning true because the first server is ready to reduce.");
+          //System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning true because the first server is ready to reduce.");
           return true;
         }
       }
      
       if(!serverState.typeEquals(readyToReduceState)) {
-        System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning false because a server is not ready to reduce.");
+        //System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]).isReadyToReduce returning false because a server is not ready to reduce.");
         return false;
       }
     }
@@ -248,7 +248,7 @@ public class Command extends ACommand {
         try {
           exitValue = process.waitFor();
           commandConfiguration.put("returnCode", Integer.toString(exitValue));
-          System.out.println("RCam Coordinator - Command - Reduction Complete - The state of the command needs to move to CommandReducedState.");
+          //System.out.println("RCam Coordinator - Command - Reduction Complete - The state of the command needs to move to CommandReducedState.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

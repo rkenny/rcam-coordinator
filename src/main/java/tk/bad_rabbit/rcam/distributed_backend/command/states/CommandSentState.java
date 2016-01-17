@@ -12,7 +12,6 @@ public class CommandSentState extends ACommandState {
     actionSubject.setState(server, new AwaitingAckState());
   }
   
-  
   ICommandResponseAction networkResponseAction;
   ICommandResponseAction relatedCommandAction;
   ICommandResponseAction runCommandAction;

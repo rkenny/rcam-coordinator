@@ -6,12 +6,7 @@ import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.SendReduct
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.SetRelatedCommandsToDoneResponseAction;
 
 public class CommandReducedState extends ACommandState {
-
-  //public void doAction(Observer observer, String server, ACommand actionSubject) {
-  //  if(observer instanceof ClientThread) {
-  //    ((ClientThread) observer).removeCommand((ACommand) actionSubject);
-  //  }
-  //}
+  
   ICommandResponseAction networkResponseAction;
   ICommandResponseAction relatedCommandAction;
   ICommandResponseAction runCommandAction;

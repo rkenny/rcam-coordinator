@@ -12,7 +12,6 @@ public class AckCommandResponseAction extends ACommandResponseAction {
   
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
-    System.out.println("RCam Coordinator - AckCommandResponseAction - going to doStuff to command " + actionSubject.getClientVariable("ackNumber"));
     ACommand relatedCommand = ((CommandController) actionObject).getCommand((Integer) actionSubject.getClientVariable("ackNumber"));
     relatedCommand.setState(server, new AckedState());
     nextState(server, actionSubject);

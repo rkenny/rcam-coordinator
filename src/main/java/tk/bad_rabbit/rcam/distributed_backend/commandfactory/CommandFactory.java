@@ -130,7 +130,7 @@ public class CommandFactory implements ICommandFactory {
       int commandTypeLength;
       
       
-      System.out.println("RCam Coordinator - CommandFactory - Trying to create command: " + commandString);
+      //System.out.println("RCam Coordinator - CommandFactory - Trying to create command: " + commandString);
       if(commandString.length() == 0) {
         return null;
       }
@@ -152,6 +152,8 @@ public class CommandFactory implements ICommandFactory {
                   serverVariables, 
                   configurationProvider.getCommandResponseAction(commandType)
                 );
+      
+      System.out.println("RCam Coordinator - CommandFactory - creating Command("+commandType+"["+ackNumber+"])");
       
       return command;
     }

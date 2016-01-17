@@ -13,8 +13,6 @@ public class ReadyToSendState extends ACommandState {
   ICommandResponseAction relatedCommandAction;
   
   public ReadyToSendState() {
-    System.out.println("RCamCoordinator - " + this.getClass().getSimpleName() + " Constructor called");
-    //setRelatedCommandResponseAction(new AddToCommandObserverMapAction());
     setNetworkResponseAction(new SendCommandAction());
   }
   
