@@ -55,7 +55,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   Map<String, SocketChannel> socketChannels;
   Selector serverSelector;
   
-  //int port;
   
   CharsetDecoder asciiDecoder;
   CharsetEncoder asciiEncoder;
@@ -117,21 +116,32 @@ public class ServerThread extends Observable implements Runnable, Observer  {
     
     while(running) {
       try {
-        Thread.sleep(125);
+        Thread.sleep(1250);
       } catch (InterruptedException interrupted) {
         interrupted.printStackTrace();
       }
-      try {
-        acceptPendingConnections();
-        performPendingSocketIOs();
-      } catch(IOException ioE) {
-        System.err.println("Ran into a critical error. Shutting down the server.");
-        running = false;
-      }
+      
+      acceptPendingConnections();
+      performPendingSocketIOs();
+      
+    
+      pollConnectedSockets();
+      //try {
+        
+      //} catch(PollingException e) {
+      //  System.out.println("RCam Coordinator - ServerThread - Polling - Caught an IOException. This is progress.");
+        
+      //  setChanged();
+      //  notifyObservers(e.getRemoteConnection());
+        
+     //}
+     
     }
     shutdownServer();
   }
 
+
+  
   private void shutdownServer() {
     try {
       serverSocketChannel.close();
@@ -150,10 +160,15 @@ public class ServerThread extends Observable implements Runnable, Observer  {
     serverSocketChannel.register(serverSelector, SelectionKey.OP_ACCEPT);
   }
   
- private void acceptPendingConnections() throws IOException {
+ private void acceptPendingConnections()  {
     
     if(serverSocketChannel != null) {
-      if(serverSelector.select() == 0) {
+      try {
+        if(serverSelector.select() == 0) {
+          return;
+        }
+      } catch(IOException e) {
+        e.printStackTrace();
         return;
       }
     }
@@ -165,42 +180,77 @@ public class ServerThread extends Observable implements Runnable, Observer  {
       if(selectedKey.isValid() && selectedKey.isAcceptable()) {
         System.out.println("RCam Coordinator - ServerThread - Accepting a new connection.");
         SocketChannel newSocketChannel;
-        newSocketChannel = serverSocketChannel.accept();
-        newSocketChannel.configureBlocking(false);
-        newSocketChannel.register(serverSelector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
-        System.out.println("RCam Coordinator - ServerThread - The remote address is " + newSocketChannel.getRemoteAddress().toString().substring(1));
-        socketChannels.put(newSocketChannel.getRemoteAddress().toString().substring(1), newSocketChannel);
-        
-        setChanged();
-        notifyObservers(newSocketChannel.getRemoteAddress().toString().substring(1));
-        
+        try {
+          newSocketChannel = serverSocketChannel.accept();
+          newSocketChannel.configureBlocking(false);
+          newSocketChannel.register(serverSelector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+          System.out.println("RCam Coordinator - ServerThread - The remote address is " + newSocketChannel.getRemoteAddress().toString().substring(1));
+          addSocketChannel(newSocketChannel.getRemoteAddress().toString().substring(1), newSocketChannel);
+          
+          
+        } catch(IOException e) {
+          System.out.println("RCam Coordinator - ServerThread - Accepting a connection failed.");
+        }
       }
       
       serverKeyIterator.remove();
     }
   }
  
- private void performPendingSocketIOs() throws IOException {
+ private void addSocketChannel(String remoteConnection, SocketChannel socketChannel) throws IOException {
+   socketChannels.put(socketChannel.getRemoteAddress().toString().substring(1), socketChannel);
+   
+   setChanged();
+   notifyObservers(socketChannel.getRemoteAddress().toString().substring(1));
+ }
+ 
+ private void closeSocketChannel(String remoteConnection, SocketChannel socketChannel)  {
+   try {
+     socketChannels.get(remoteConnection).close();
+   } catch(IOException e) {
+     e.printStackTrace();
+   }
+   socketChannels.remove(remoteConnection);
+   
+   setChanged();
+   notifyObservers(remoteConnection);
+ }
+ 
+ private void performPendingSocketIOs()  {
    //synchronized(runController) {
    Set<String> connectedChannels = socketChannels.keySet();
-     Iterator<String> i = connectedChannels.iterator();
-     while(i.hasNext()) {
-       String rC = i.next();
-       SocketChannel socketChannel = socketChannels.get(rC);
-       SelectionKey selectedKey = socketChannel.keyFor(serverSelector);
-       if(selectedKey.isValid() && selectedKey.isReadable()) {
+   Iterator<String> i = connectedChannels.iterator();
+   while(i.hasNext()) {
+     String rC = i.next();
+     SocketChannel socketChannel = socketChannels.get(rC);
+     SelectionKey selectedKey = socketChannel.keyFor(serverSelector);
+     ACommand newCommand;
+     
+     if(selectedKey.isValid() && selectedKey.isReadable()) {
+       try {
+         
          List<CharBuffer> newCommands = readFromChannel(socketChannel);
+         
          for(CharBuffer cB : newCommands) {
-           ACommand newCommand = commandFactory.createCommand(cB, rC);
-           if(newCommand != null) {
-             newCommand.addObservers(observers);
-             
-             //newCommand.setServers(getConnectedServers());
-             newCommand.setState(socketChannel.getRemoteAddress().toString().substring(1), new ReceivedCommandState());
+         
+           //System.out.println(cB.toString().length());
+           if(cB.toString().length() > 3) {
+             newCommand = commandFactory.createCommand(cB, rC);
+             if(newCommand != null) {
+               newCommand.addObservers(observers);
+               newCommand.setState(rC, new ReceivedCommandState());
+             }
            }
+         
          }
+         
+       } catch(IOException e) {
+         closeSocketChannel(rC, socketChannel);
+         continue;
        }
+        
      }
+   }
    return;
  }
  
@@ -208,9 +258,6 @@ public class ServerThread extends Observable implements Runnable, Observer  {
    ArrayList<CharBuffer> returnedList = new ArrayList<CharBuffer>();
    
    String returnedBuffer = "";
-   
-   
-   
    ByteBuffer buffer = ByteBuffer.allocate(1024);
  
    selectedChannel.read(buffer);
@@ -222,12 +269,10 @@ public class ServerThread extends Observable implements Runnable, Observer  {
      e.printStackTrace();
    }
    buffer.clear();
-   
 
    String[] tokens = returnedBuffer.split("\n");
    
    for(String commandString : tokens) {
-     //System.out.println(commandString);
      returnedList.add(CharBuffer.wrap(commandString));
    }
    
@@ -242,6 +287,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
        selectedChannel.write(buffer);
    }
    buffer.clear();
+
  }
  
  public void sendReductionComplete(ACommand command) {
@@ -276,15 +322,30 @@ public class ServerThread extends Observable implements Runnable, Observer  {
        }
      } catch(IOException ioException) {
        System.err.println("Error reading from a channel. Closing that channel.");
-       try {
-         connectedChannel.close();
-       } catch (IOException e) {
-         System.err.println("Error closing the channel.");
-         e.printStackTrace();
-       }
+       closeSocketChannel(client, connectedChannel);
      }  
    }
  
+   private void pollConnectedSockets()  {
+     CharBuffer buffer = CharBuffer.wrap("!\n");
+     
+     Set<String> connectedChannels = socketChannels.keySet();
+     Iterator<String> i = connectedChannels.iterator();
+     while(i.hasNext()) {
+       String rC = i.next();
+       SocketChannel socketChannel = socketChannels.get(rC);
+       SelectionKey selectedKey = socketChannel.keyFor(serverSelector);
+       
+       if(selectedKey.isWritable()) {
+         try {
+           writeToChannel(socketChannel, buffer);
+         } catch(IOException e) {
+           closeSocketChannel(rC, socketChannel);
+           //throw new PollingException(rC);
+         }
+       }
+     }
+   }
 
   
 }

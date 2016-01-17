@@ -83,6 +83,9 @@ public class CommandController implements Observer {
   }
   
   public void update(Observable o, Object arg) {
+    if(o instanceof ServerThread) {
+      System.out.println("RCam Coordinator - CommandController - Received a notification about an error in a ServerThread for client " + (String) arg);
+    }
     
     if(o instanceof ACommand) {
       ACommand newCommand = (ACommand) o;
