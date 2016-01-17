@@ -1,7 +1,7 @@
 #!/bin/sh
 rm ~/partial_vids/grid.mkv
 
-echo "the reduction for Record will complete on $backendConnectAddress"
+echo "the reduction for Record will complete."
 
 ~/ffmpeg_install/ffmpeg-2.8/ffmpeg \
   -i ~/partial_vids/video.101.h264 \

@@ -86,11 +86,7 @@ public class CommandController implements Observer {
     
     if(o instanceof ACommand) {
       ACommand newCommand = (ACommand) o;
-
-      Entry<ACommand, Entry<String, ICommandState>> details = (Entry<ACommand, Entry<String, ICommandState>> ) arg;
-      String server = details.getValue().getKey();
-      
-      newCommand.doRelatedCommandAction(this, server);
+      newCommand.doRelatedCommandAction(this, (String) arg);
     } 
   }
 }

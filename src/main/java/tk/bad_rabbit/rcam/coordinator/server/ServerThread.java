@@ -1,6 +1,7 @@
 package tk.bad_rabbit.rcam.coordinator.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -82,16 +83,9 @@ public class ServerThread extends Observable implements Runnable, Observer  {
       while(i.hasNext()) {
         String rC = i.next();
         SocketChannel selectedChannel = socketChannels.get(rC);
-      
-        if(arg instanceof ICommandState) {
-          updatedCommand.doNetworkAction(this, rC);
-        }
         
-        if(arg instanceof Map.Entry) {
-          Map.Entry<ACommand, Map.Entry<String, ICommandState>> commandStateMap = (Map.Entry<ACommand, Map.Entry<String, ICommandState>> ) arg;
-          if(rC.equals(commandStateMap.getValue().getKey())) {
-            updatedCommand.doNetworkAction(this, rC);
-          }  
+        if(rC.equals((String) arg)) {
+          updatedCommand.doNetworkAction(this, rC);
         }
       }
   }
@@ -149,12 +143,10 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   private void initializeServer() throws IOException{
     serverSocketChannel = ServerSocketChannel.open();
     serverSocketChannel.configureBlocking(false);
-    serverSocketChannel.socket().bind(new InetSocketAddress((Integer) configurationProvider.getServerVariable("backendConnectPort")));
-    
-    Integer cI = serverSocketChannel.getLocalAddress().toString().indexOf(":");
-    configurationProvider.setServerVariable("backendConnectAddress", serverSocketChannel.toString().substring(1, cI));
-    
+
+    serverSocketChannel.socket().bind(new InetSocketAddress((String) configurationProvider.getServerVariable("backendConnectAddress"), (Integer) configurationProvider.getServerVariable("backendConnectPort")));
     serverSelector = Selector.open();
+    
     serverSocketChannel.register(serverSelector, SelectionKey.OP_ACCEPT);
   }
   

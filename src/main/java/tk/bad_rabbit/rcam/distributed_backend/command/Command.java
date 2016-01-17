@@ -108,17 +108,19 @@ public class Command extends ACommand {
   
   public synchronized void setState(String client, ICommandState state) {
     //System.out.println("RCam Coordinator - Command("+commandName+"["+getAckNumber()+"]) - SetState called for " + client + " state " + state.getClass().getSimpleName());
-    if(this.state.get(client) == null || !this.state.get(client).equals(new ErrorCommandState()) )  { 
+    //if(this.state.get(client) == null || !this.state.get(client).equals(new ErrorCommandState()) )  { 
     
       this.state.put(client,  state);
       
-      Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(client, state);
-      Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
+      //Entry<String, ICommandState> serverState = new AbstractMap.SimpleEntry<String, ICommandState>(client, state);
+      //Entry<ACommand, Entry<String, ICommandState>> commandDetails = new AbstractMap.SimpleEntry<ACommand, Entry<String, ICommandState>>(this, serverState);
+      
+      //Entry<ACommand, String> commandDetails = new AbstractMap.SimpleEntry<ACommand, String>(this, client);
       
       setChanged();
-      notifyObservers(commandDetails);
+      notifyObservers(client);
      
-    }
+    //}
     return;
   }
   
@@ -213,14 +215,37 @@ public class Command extends ACommand {
     return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
   }
   
+  
+public void setupEnvironment(Map<String, String> environment) {
+    
+    Iterator<String> serverVariableIterator = serverVariables.keys();
+    while(serverVariableIterator.hasNext()) {
+      String key = serverVariableIterator.next();
+      environment.put(key, serverVariables.get(key).toString());
+    }     
+     
+    Iterator<String> variableIterator = commandConfiguration.getJSONObject("commandVars").keys();
+    while(variableIterator.hasNext()) {
+      String key = variableIterator.next();
+      environment.put(key, commandConfiguration.getJSONObject("commandVars").get(key).toString());
+    }
+         
+     Iterator<String> clientVariableIterator = clientVariables.keys();
+     while(clientVariableIterator.hasNext()) {
+       String key = clientVariableIterator.next();
+       environment.put(key, clientVariables.get(key).toString());
+     }
+  }
+  
   public Callable<Map.Entry<Integer, Integer>> reduce() {
-    final Integer commandAckNumber = this.commandAckNumber;
-    final String[] command = {commandConfiguration.getString("reductionCommand")};
+    
+    
     class ReductionCommand implements  Callable<Map.Entry<Integer, Integer>> {
 
       public Map.Entry<Integer, Integer> call() throws Exception {
 
-        ProcessBuilder pb = new ProcessBuilder(command);
+        ProcessBuilder pb = new ProcessBuilder(commandConfiguration.getString("reductionCommand"));
+        setupEnvironment(pb.environment());
         
         Process process = pb.start();
 
