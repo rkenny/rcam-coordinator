@@ -1,12 +1,18 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.responseactions;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Observer;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.json.JSONObject;
+
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduceState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReducedState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 
 public class ReduceCommandResponseAction extends ACommandResponseAction {
@@ -18,8 +24,8 @@ public class ReduceCommandResponseAction extends ACommandResponseAction {
   
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
-    if(actionSubject.isReadyToReduce()) {
-      Future<Map.Entry<Integer, Integer>> reductionResult = ((RunController) actionObject).reduce(actionSubject);
+    if(stateIsReadyToRun(actionSubject)) {
+      Future<Map.Entry<Integer, Integer>> reductionResult = ((RunController) actionObject).run(actionSubject, "reductionCommand");
       try {
         reductionResult.get();
         actionSubject.deleteObserver(actionObject);
@@ -29,13 +35,34 @@ public class ReduceCommandResponseAction extends ACommandResponseAction {
       } catch(ExecutionException e) {
         e.printStackTrace();
       }
-      
     }
   }
 
+  public boolean stateIsReadyToRun(ACommand actionSubject) {
+    Iterator<Entry<String, ICommandState>> serversIterator = actionSubject.getStates().entrySet().iterator();
+    
+    CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
+    
+    while(serversIterator.hasNext()) {
+      ICommandState serverState = serversIterator.next().getValue();
+      
+      if(actionSubject.getConfigurationObject("reduceOnFirst") != null && actionSubject.getConfigurationObject("reduceOnFirst").equals("true")) {
+        if(serverState.typeEquals(readyToReduceState)) {
+          return true;
+        }
+      }
+     
+      if(!serverState.typeEquals(readyToReduceState)) {
+        return false;
+      }
+    }
+    return true;
+    
+  }
+  
   
   public void nextState(String server, ACommand command) {
-    command.setState(new CommandReducedState());
+    command.nextState(server);
   }
 
 }

@@ -21,7 +21,9 @@ public interface ICommandState {
   void setRunCommandResponseAction(ICommandResponseAction newRunCommandResponseAction);
   public void doRunCommandAction(Observer actionObserver, String server, ACommand actionSubject);
   
+  
   abstract void nextState(String server, ACommand actionSubject);
+  abstract ICommandState getNextState();
   
   public Boolean typeEquals(ICommandState comparisonState);
 }

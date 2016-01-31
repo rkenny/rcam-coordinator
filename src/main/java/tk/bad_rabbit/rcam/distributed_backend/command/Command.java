@@ -20,7 +20,7 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReadyToReduc
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 
-public class Command extends ACommand {
+public class Command extends ACommand  {
   private String commandName;
 
   private Integer commandAckNumber;
@@ -67,6 +67,10 @@ public class Command extends ACommand {
     return serverVariables.has(variableName) ? serverVariables.get(variableName) : null;
   }
   
+  public Object getConfigurationObject(String variableName) {
+    return commandConfiguration.has(variableName) ? commandConfiguration.get(variableName) : null;
+  }
+  
   public void setClientVariable(String variableName, Object variable) {
     this.clientVariables.put(variableName, variable);
   }
@@ -84,6 +88,12 @@ public class Command extends ACommand {
     return state.keySet();
   }
   
+  public  Map<String, ICommandState> getStates() {
+    synchronized(this.state) {
+      return this.state;
+    }
+  }
+  
   public ICommandState getState(String server) {
     return this.state.get(server);
   }
@@ -99,6 +109,10 @@ public class Command extends ACommand {
   
   
   public synchronized void setState(String client, ICommandState state) {
+    
+    if(!(this.state.get(client) == null)  && this.state.get(client).typeEquals(state)) {
+      return;
+    }
     
     this.state.put(client,  state);
     setChanged();
@@ -128,26 +142,26 @@ public class Command extends ACommand {
     return(commandConfiguration.getJSONObject("commandVars").get("ignored") == "true");
   }
   
-  public Boolean isReadyToReduce() {
-    Iterator<Entry<String, ICommandState>> serversIterator = this.state.entrySet().iterator();
-    CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
-    
-    while(serversIterator.hasNext()) {
-      ICommandState serverState = serversIterator.next().getValue();
-      
-      if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
-        if(serverState.typeEquals(readyToReduceState)) {
-          return true;
-        }
-      }
-     
-      if(!serverState.typeEquals(readyToReduceState)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
+//  public Boolean isReadyToReduce() {
+//    Iterator<Entry<String, ICommandState>> serversIterator = this.state.entrySet().iterator();
+//    CommandReadyToReduceState readyToReduceState = new CommandReadyToReduceState();
+//    
+//    while(serversIterator.hasNext()) {
+//      ICommandState serverState = serversIterator.next().getValue();
+//      
+//      if(commandConfiguration.has("reduceOnFirstResult") && (commandConfiguration.get("reduceOnFirstResult").equals("true"))) {
+//        if(serverState.typeEquals(readyToReduceState)) {
+//          return true;
+//        }
+//      }
+//     
+//      if(!serverState.typeEquals(readyToReduceState)) {
+//        return false;
+//      }
+//    }
+//    return true;
+//  }
+//  
   
   public String finalizeCommandString() {
     StringBuilder finalCommandString = new StringBuilder();
@@ -191,7 +205,7 @@ public class Command extends ACommand {
   }
   
   public CharBuffer asCharBuffer() {
-    return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString());
+    return CharBuffer.wrap(commandName + "[" + commandAckNumber.toString() +"]" + finalizeCommandString()+"\n");
   }
   
   
@@ -216,11 +230,12 @@ public void setupEnvironment(Map<String, String> environment) {
      }
   }
   
-  public Callable<Map.Entry<Integer, Integer>> reduce() {
+  public Callable<Map.Entry<Integer, Integer>> run(final String scriptToRun) {
+    System.out.println("Command("+getCommandName()+"["+getAckNumber()+"]) going to run " + scriptToRun);
     class ReductionCommand implements  Callable<Map.Entry<Integer, Integer>> {
       public Map.Entry<Integer, Integer> call() throws Exception {
 
-        ProcessBuilder pb = new ProcessBuilder(commandConfiguration.getString("reductionCommand"));
+        ProcessBuilder pb = new ProcessBuilder(commandConfiguration.getJSONObject("executables").getString(scriptToRun));
         setupEnvironment(pb.environment());
         
         Process process = pb.start();

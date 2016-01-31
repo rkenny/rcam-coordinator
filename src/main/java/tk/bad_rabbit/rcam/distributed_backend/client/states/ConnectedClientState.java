@@ -1,12 +1,11 @@
 package tk.bad_rabbit.rcam.distributed_backend.client.states;
 
-import java.util.Observer;
-
-import tk.bad_rabbit.rcam.distributed_backend.command.IClientThread;
+import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 
 public class ConnectedClientState extends AClientState {
 
-  public void doAction(Observer actionObserver, IClientThread actionClientThread) {
+  public void doCommandAction( ACommand command) {
+    System.out.println("RCam Coordinator - ConnectedClientState - will notify Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
   }
 
 }

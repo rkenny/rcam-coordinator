@@ -8,8 +8,9 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.ErrorCommandState;
 
 public class DisconnectedClientState extends AClientState {
 
-  public void doAction(Observer observingCommand, IClientThread actionClientThread) {
-   // ((ACommand) observingCommand).setErrorState();
+  public void doCommandAction(ACommand command) {
+    System.out.println("RCam Coordinator - DisconnectedClientState - will notify Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
+    command.setState(new ErrorCommandState());
   }
 
 }

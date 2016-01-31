@@ -1,6 +1,5 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.states;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ReduceCommandResponseAction;
 
@@ -43,7 +42,9 @@ public class CommandReadyToReduceState extends ACommandState {
   public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
   public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
-
+  public ICommandState getNextState() {
+    return new CommandReduceRunningState();
+  }
   
   
 }

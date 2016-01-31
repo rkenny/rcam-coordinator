@@ -8,7 +8,8 @@ import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
 public class ReductionCompleteCommandResponseAction  extends ACommandResponseAction {
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
-    ((RunController) actionObject).reduce(actionSubject);
+    System.out.println("RCam Coordinator - Does ReductionCompleteCommandResponseAction ever run?");
+    ((RunController) actionObject).run(actionSubject, "reductionCommand");
   }
 
   

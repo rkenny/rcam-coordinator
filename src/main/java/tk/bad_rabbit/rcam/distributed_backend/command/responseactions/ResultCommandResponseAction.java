@@ -18,7 +18,7 @@ public class ResultCommandResponseAction extends ACommandResponseAction {
   
   
   public void nextState(String server, ACommand command) {
-    command.setState(server, new DoneState());
+    command.nextState(server);
   }
 
   

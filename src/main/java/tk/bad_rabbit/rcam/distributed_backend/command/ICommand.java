@@ -21,6 +21,7 @@ public interface ICommand  {
   
   public Object getClientVariable(String variableName);
   public Object getServerVariable(String variableName);
+  public Object getConfigurationObject(String variableName);
   
   public void doNetworkAction(Observer actionObserver, String server);
   public void doRelatedCommandAction(Observer actionObserver, String server);
@@ -35,6 +36,7 @@ public interface ICommand  {
   public ICommandState getState(String server);
   public void setState(ICommandState state);
   public void setState(String server, ICommandState state);
+  public void nextState(String server);
   
   public void setServers(Set<String> servers);
   
@@ -42,6 +44,7 @@ public interface ICommand  {
 
   
   public Boolean stateEquals(String server, ICommandState comparisonState);
+  public Map<String, ICommandState> getStates();
   //public void setErrorState();
   //public void setReducedState();
   
@@ -51,7 +54,7 @@ public interface ICommand  {
   //public void doNetworkAction(Observer actionObject, String server);
   // public void doRelatedCommandAction(Observer actionObserver, ACommand relatedCommand);
   
-  public Boolean isReadyToReduce();
+  //public Boolean isReadyToReduce();
   
-  public Callable<Map.Entry<Integer, Integer>> reduce();
+  public Callable<Map.Entry<Integer, Integer>> run(final String scriptToRun);
 }

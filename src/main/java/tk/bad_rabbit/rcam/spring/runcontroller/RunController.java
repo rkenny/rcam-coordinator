@@ -47,8 +47,9 @@ public class RunController implements Observer {
     } 
   }
   
-  public Future<Map.Entry<Integer, Integer>> reduce(ACommand command) {
-    return commandExecutor.submit(command.reduce());
+  public Future<Map.Entry<Integer, Integer>> run(ACommand command, String scriptToRun) {
+    System.out.println("RCam Coordinator - Going to run Command("+command.getCommandName()+"["+command.getAckNumber()+"])'s " + scriptToRun);
+    return commandExecutor.submit(command.run(scriptToRun));
   }
    
 }

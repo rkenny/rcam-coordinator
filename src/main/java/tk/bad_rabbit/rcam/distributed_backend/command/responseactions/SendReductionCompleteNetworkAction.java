@@ -9,6 +9,8 @@ public class SendReductionCompleteNetworkAction extends ACommandResponseAction {
   @Override
   public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
     ((ServerThread) actionObject).sendReductionComplete(actionSubject);
+    
+    actionSubject.nextState(server);
   }
 
 }

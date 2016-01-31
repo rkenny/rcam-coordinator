@@ -53,5 +53,8 @@ public class ReceivedCommandState extends ACommandState {
   public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
   public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
+  public ICommandState getNextState() {
+    return new DoneState();
+  }
   
 }

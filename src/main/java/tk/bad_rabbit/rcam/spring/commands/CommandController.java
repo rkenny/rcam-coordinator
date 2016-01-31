@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Set;
 
-import javax.activation.CommandObject;
 import javax.annotation.PostConstruct;
 
 import org.json.JSONObject;
@@ -26,10 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import tk.bad_rabbit.rcam.coordinator.client.Client;
 import tk.bad_rabbit.rcam.coordinator.server.ServerThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.ReadyToSendState;
+import tk.bad_rabbit.rcam.distributed_backend.command.states.NewCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 
 @Controller(value="commandController")
@@ -72,7 +69,9 @@ public class CommandController implements Observer {
     
     newCommand.addObservers(observers);
     newCommand.setServers(serverThread.getConnectedServers());    
-    newCommand.setState(new ReadyToSendState());
+    newCommand.setState(new NewCommandState());
+    
+    //newCommand.setState(new ReadyToSendState());
     
     
     return new ResponseEntity<String>("done",HttpStatus.OK);
@@ -84,7 +83,7 @@ public class CommandController implements Observer {
   
   public void update(Observable o, Object arg) {
     if(o instanceof ServerThread) {
-      System.out.println("RCam Coordinator - CommandController - Received a notification about an error in a ServerThread for client " + (String) arg);
+      System.out.println("RCam Coordinator - CommandController - Received a notification about an error in a ServerThread for client " + ((Client) arg).getAddress());
     }
     
     if(o instanceof ACommand) {

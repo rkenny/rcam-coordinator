@@ -8,7 +8,8 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.DoneState;
 
 public class SetRelatedCommandsToDoneResponseAction extends ACommandResponseAction {
   public void nextState(String server, ACommand command) {
-    command.setState(new DoneState());
+    //command.setState(new DoneState());
+    command.nextState(server);
   }
 
   @Override

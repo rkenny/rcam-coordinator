@@ -7,7 +7,8 @@ import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandReduceRunnin
 
 public class SetRelatedCommandsToReduceRunningResponseAction extends ACommandResponseAction {
   public void nextState(String server, ACommand command) {
-    command.setState(new CommandReduceRunningState());
+    //command.setState(new CommandReduceRunningState());
+    command.nextState(server);
   }
 
   @Override

@@ -40,4 +40,8 @@ public class AckedState extends ACommandState {
   public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
   public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
+  public ICommandState getNextState() {
+    return new WaitingForCompletionState(); // This is WaitingForCompletion, really, but this is OK for now.
+  }
+  
 }

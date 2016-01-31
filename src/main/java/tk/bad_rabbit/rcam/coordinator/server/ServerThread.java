@@ -1,7 +1,6 @@
 package tk.bad_rabbit.rcam.coordinator.server;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -14,10 +13,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -29,8 +26,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import tk.bad_rabbit.rcam.coordinator.client.Client;
+import tk.bad_rabbit.rcam.coordinator.client.Clients;
+import tk.bad_rabbit.rcam.distributed_backend.client.states.ConnectedClientState;
+import tk.bad_rabbit.rcam.distributed_backend.client.states.DisconnectedClientState;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.ICommandState;
 import tk.bad_rabbit.rcam.distributed_backend.command.states.ReceivedCommandState;
 import tk.bad_rabbit.rcam.distributed_backend.commandfactory.ICommandFactory;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
@@ -50,11 +50,9 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   
   List<Observer> observers;
   
-  
   ServerSocketChannel serverSocketChannel;
-  Map<String, SocketChannel> socketChannels;
+  Clients clients;
   Selector serverSelector;
-  
   
   CharsetDecoder asciiDecoder;
   CharsetEncoder asciiEncoder;
@@ -64,6 +62,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   @PostConstruct
   public void initialize() {
     this.observers = new ArrayList<Observer>();
+    this.observers.add(this);
   }
   
   public void injectObserver(Observer newObserver) {
@@ -71,18 +70,13 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   }
   
   public Set<String> getConnectedServers() {
-    return socketChannels.keySet();
+    return clients.getConnectedServers();
   }
   
   public void update(Observable observable, Object arg) {
       ACommand updatedCommand = (ACommand) observable;
       
-      Set<String> connectedClients = socketChannels.keySet();
-      Iterator<String> i = connectedClients.iterator();
-      while(i.hasNext()) {
-        String rC = i.next();
-        SocketChannel selectedChannel = socketChannels.get(rC);
-        
+      for(String rC : clients) {
         if(rC.equals((String) arg)) {
           updatedCommand.doNetworkAction(this, rC);
         }
@@ -90,7 +84,7 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   }
   
   public void start() {
-    socketChannels = new HashMap<String, SocketChannel>();
+    clients = new Clients();
     this.asciiDecoder = Charset.forName("US-ASCII").newDecoder();
     this.asciiEncoder = Charset.forName("US-ASCII").newEncoder();
     thread = new Thread(this);
@@ -123,19 +117,9 @@ public class ServerThread extends Observable implements Runnable, Observer  {
       
       acceptPendingConnections();
       performPendingSocketIOs();
-      
     
       pollConnectedSockets();
-      //try {
-        
-      //} catch(PollingException e) {
-      //  System.out.println("RCam Coordinator - ServerThread - Polling - Caught an IOException. This is progress.");
-        
-      //  setChanged();
-      //  notifyObservers(e.getRemoteConnection());
-        
-     //}
-     
+
     }
     shutdownServer();
   }
@@ -198,31 +182,37 @@ public class ServerThread extends Observable implements Runnable, Observer  {
   }
  
  private void addSocketChannel(String remoteConnection, SocketChannel socketChannel) throws IOException {
-   socketChannels.put(socketChannel.getRemoteAddress().toString().substring(1), socketChannel);
+   
+   Client newClient = new Client(socketChannel.getRemoteAddress().toString().substring(1), socketChannel);
+   clients.add(newClient);
+   newClient.setState(new ConnectedClientState());
    
    setChanged();
-   notifyObservers(socketChannel.getRemoteAddress().toString().substring(1));
+   notifyObservers(clients.get(socketChannel.getRemoteAddress().toString().substring(1)));
  }
  
  private void closeSocketChannel(String remoteConnection, SocketChannel socketChannel)  {
    try {
-     socketChannels.get(remoteConnection).close();
+     Client client = clients.get(remoteConnection);
+     client.getSocketChannel().close();
+     client.setState(new DisconnectedClientState());
+     
    } catch(IOException e) {
      e.printStackTrace();
    }
-   socketChannels.remove(remoteConnection);
+   
    
    setChanged();
-   notifyObservers(remoteConnection);
+   notifyObservers(clients.get(remoteConnection));
+   
+   clients.remove(remoteConnection);
  }
  
  private void performPendingSocketIOs()  {
    //synchronized(runController) {
-   Set<String> connectedChannels = socketChannels.keySet();
-   Iterator<String> i = connectedChannels.iterator();
-   while(i.hasNext()) {
-     String rC = i.next();
-     SocketChannel socketChannel = socketChannels.get(rC);
+   
+   for(String rC : clients) {
+     SocketChannel socketChannel = clients.get(rC).getSocketChannel();
      SelectionKey selectedKey = socketChannel.keyFor(serverSelector);
      ACommand newCommand;
      
@@ -238,12 +228,12 @@ public class ServerThread extends Observable implements Runnable, Observer  {
              newCommand = commandFactory.createCommand(cB, rC);
              if(newCommand != null) {
                newCommand.addObservers(observers);
+               this.addObserver(newCommand);
+               
                newCommand.setState(rC, new ReceivedCommandState());
              }
            }
-         
          }
-         
        } catch(IOException e) {
          closeSocketChannel(rC, socketChannel);
          continue;
@@ -294,14 +284,15 @@ public class ServerThread extends Observable implements Runnable, Observer  {
    send(commandFactory.createReductionCompleteCommand(command));
  }
  
+ public void sendCancelCommand(String server, ACommand command) {
+   send(server, commandFactory.createCancelCommand(command));
+ }
+ 
  public void send(ACommand command) {
    Iterator<SelectionKey> keyIterator = serverSelector.selectedKeys().iterator();
    
-   Set<String> connectedChannels = socketChannels.keySet();
-   Iterator<String> i = connectedChannels.iterator();
-   
-   while(i.hasNext()) {
-     sendCommandToClient(i.next(), command);
+   for(String rC : clients) {
+     sendCommandToClient(rC, command);
    }
  }
  
@@ -311,11 +302,12 @@ public class ServerThread extends Observable implements Runnable, Observer  {
  
  public void sendCommandToClient(String client, ACommand command) {
    //synchronized(runController) {
-     SocketChannel connectedChannel = socketChannels.get(client);
+     SocketChannel connectedChannel = clients.get(client).getSocketChannel();
      SelectionKey key = connectedChannel.keyFor(serverSelector);
      
      try {
-       if(key.isWritable()) {
+       if(key.isValid() && key.isWritable()) {
+         this.addObserver(command);
          writeToChannel(connectedChannel, command.asCharBuffer());
        } else {
          System.out.println("Key is not writable.");
@@ -328,22 +320,22 @@ public class ServerThread extends Observable implements Runnable, Observer  {
  
    private void pollConnectedSockets()  {
      CharBuffer buffer = CharBuffer.wrap("!\n");
-     
-     Set<String> connectedChannels = socketChannels.keySet();
-     Iterator<String> i = connectedChannels.iterator();
-     while(i.hasNext()) {
-       String rC = i.next();
-       SocketChannel socketChannel = socketChannels.get(rC);
+     List<String> socketsToClose = new ArrayList<String>();
+     for(String rC : clients) {
+       SocketChannel socketChannel = clients.get(rC).getSocketChannel();
        SelectionKey selectedKey = socketChannel.keyFor(serverSelector);
        
        if(selectedKey.isWritable()) {
          try {
            writeToChannel(socketChannel, buffer);
          } catch(IOException e) {
-           closeSocketChannel(rC, socketChannel);
-           //throw new PollingException(rC);
+           socketsToClose.add(rC);
          }
        }
+     }
+     
+     for(String socketToClose : socketsToClose) {
+       closeSocketChannel(socketToClose, clients.get(socketToClose).getSocketChannel());
      }
    }
 
