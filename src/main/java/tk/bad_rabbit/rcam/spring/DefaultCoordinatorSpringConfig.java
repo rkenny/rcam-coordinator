@@ -14,10 +14,12 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @Configuration
 @EnableWebMvc
 @EnableScheduling
-@ComponentScan({"tk.bad_rabbit.rcam.spring.*", 
+@ComponentScan({
+  "tk.bad_rabbit.rcam.spring.*", 
   "tk.bad_rabbit.rcam.distributed_backend.*",
   "tk.bad_rabbit.rcam.coordinator.*",
-  "org.springframework.context.annotation.CommonAnnotationBeanPostProcessor"})
+  "org.springframework.context.annotation.CommonAnnotationBeanPostProcessor"
+})
 public class DefaultCoordinatorSpringConfig extends WebMvcConfigurerAdapter {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {

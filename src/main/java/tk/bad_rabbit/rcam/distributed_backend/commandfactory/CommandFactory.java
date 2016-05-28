@@ -17,11 +17,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import tk.bad_rabbit.rcam.coordinator.server.ServerThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 import tk.bad_rabbit.rcam.distributed_backend.command.Command;
 import tk.bad_rabbit.rcam.distributed_backend.configurationprovider.IConfigurationProvider;
-import tk.bad_rabbit.rcam.spring.runcontroller.RunController;
+import tk.bad_rabbit.rcam.spring.commandcoordinator.CommandCoordinator;
+import tk.bad_rabbit.rcam.spring.commands.CommandController;
 
 @Service(value="commandFactory")
 public class CommandFactory implements ICommandFactory {
@@ -34,6 +34,12 @@ public class CommandFactory implements ICommandFactory {
     @Autowired
     @Qualifier(value="configurationProvider")
     IConfigurationProvider configurationProvider;
+    
+    @Autowired
+    CommandCoordinator commandCoordinator;
+    
+    @Autowired
+    CommandController commandController;
     
     public CommandFactory() {
     }
@@ -80,29 +86,29 @@ public class CommandFactory implements ICommandFactory {
       return new JSONObject(commandArgs.toString());
     }
     
-    public ACommand createAckCommand(ACommand command) {
-      JSONObject commandVariables = new JSONObject();
-      commandVariables.put("command", command.getCommandName())
-        .put("ackNumber", command.getAckNumber());
-      return createCommand("Ack", commandVariables);
-    }
+    //public ACommand createAckCommand(ACommand command) {
+    //  JSONObject commandVariables = new JSONObject();
+    //  commandVariables.put("command", command.getCommandName())
+    //    .put("ackNumber", command.getAckNumber());
+    //  return createCommand("Ack", commandVariables);
+    //}
     
-    public ACommand createCancelCommand(ACommand commandToCancel) {
-      JSONObject commandVariables = new JSONObject();
-      commandVariables.put("command",  commandToCancel.getCommandName())
-        .put("ackNumber", commandToCancel.getAckNumber());
-      
-      return createCommand("Cancel", commandVariables);
-      
-    }
+    //public ACommand createCancelCommand(ACommand commandToCancel) {
+    //  JSONObject commandVariables = new JSONObject();
+    // commandVariables.put("command",  commandToCancel.getCommandName())
+    //    .put("ackNumber", commandToCancel.getAckNumber());
+    //  
+    //  return createCommand("Cancel", commandVariables);
+    //  
+    //}
     
-    public ACommand createReductionCompleteCommand(ACommand command) {
-      JSONObject commandVariables = new JSONObject();
-      commandVariables.put("command", command.getCommandName());
-      commandVariables.put("ackNumber", command.getAckNumber());
+    //public ACommand createReductionCompleteCommand(ACommand command) {
+    //  JSONObject commandVariables = new JSONObject();
+    //  commandVariables.put("command", command.getCommandName());
+    //  commandVariables.put("ackNumber", command.getAckNumber());
       
-      return createCommand("ReductionComplete", commandVariables);
-    }
+    //  return createCommand("ReductionComplete", commandVariables);
+    //}
     
    
     public String getCommandType(String commandString) {
@@ -114,44 +120,44 @@ public class CommandFactory implements ICommandFactory {
       return commandString.substring(0, commandTypeLength).trim();
     }
     
-    public ACommand createCommand(CharBuffer commandBuffer, String server) {
-      ACommand command = createCommand(commandBuffer);
-      return command;
-    }
     
     public ACommand createCommand(CharBuffer commandBuffer) {
       String commandString = commandBuffer.toString();
       
-      String commandType = getCommandType(commandString);
-      Integer commandAckNumber = Integer.parseInt(commandString.substring(commandString.indexOf("[")+1, commandString.indexOf("]")));
-      JSONObject clientVariables = new JSONObject(commandString.substring(commandString.indexOf("{"), commandString.length()));;
-      int commandTypeLength;
-      
-      
-      //System.out.println("RCam Coordinator - CommandFactory - Trying to create command: " + commandString);
       if(commandString.length() == 0) {
         return null;
       }
       
-      return createCommand(commandType, commandAckNumber, clientVariables);
+      JSONObject commandJSON = new JSONObject(commandString);
+      JSONObject commandVariables = commandJSON.getJSONObject("details");
+      String commandName = commandJSON.getString("commandName");
+      
+      Integer commandAckNumber;
+      if(commandJSON.has("ackNumber")) {
+        commandAckNumber = commandJSON.getInt("ackNumber");
+      } else {
+        commandAckNumber = 0;
+      }
+      
+      //JSONObject clientVariables //= new JSONObject(commandString.substring(commandString.indexOf("{"), commandString.length()));
+                  
+      //return createCommand(getCommandType(commandString), commandAckNumber, clientVariables);
+      return createCommand(commandName, commandAckNumber, commandVariables);
     }
  
     public ACommand createCommand(@Value("${commandType}") String commandType, JSONObject clientVariables) {
       return createCommand(commandType, new Random().nextInt((99999 - 10000) + 1) + 10000, clientVariables);
     }
     
-    public ACommand createCommand(String commandType, Integer ackNumber, JSONObject clientVariables) {
+    public ACommand createCommand(String commandType, Integer ackNumber, JSONObject details) {
       ACommand command = null;
       
-      command = new Command(commandType, 
-                  ackNumber,
-                  createCommandConfiguration(commandType), 
-                  clientVariables, 
-                  serverVariables, 
-                  configurationProvider.getCommandResponseAction(commandType)
-                );
+      command = new Command(commandType, ackNumber, details);
       
       System.out.println("RCam Coordinator - CommandFactory - creating Command("+commandType+"["+ackNumber+"])");
+      
+      command.addObserver(commandCoordinator);
+      commandController.addCommand(command);
       
       return command;
     }

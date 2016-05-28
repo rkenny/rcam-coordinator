@@ -1,8 +1,9 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.responseactions;
 
-import java.util.Observer;
+import java.util.concurrent.Future;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.spring.commands.CommandController;
 
 
 public interface ICommandResponseAction {
@@ -13,8 +14,8 @@ public interface ICommandResponseAction {
   //abstract public void doRelatedCommandStuff(Observer actionObject, String server, ACommand actionSubject);
   
   
-  public void doStuff(Observer actionObject, String server, ACommand actionSubject);
+  public Future<Integer> doRelatedAction(CommandController actionObject, String server, ACommand actionSubject);
   
-  public void nextState(String server, ACommand command);
+  //public void nextState(String server, ACommand command);
   
 }

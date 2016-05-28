@@ -1,5 +1,6 @@
 package tk.bad_rabbit.rcam.coordinator.server;
 
+import java.io.IOException;
 import java.util.Observer;
 
 import javax.annotation.PostConstruct;
@@ -18,25 +19,26 @@ public class Server {
   @Autowired
   ServerThread serverThread;
   
-  @Autowired
-  @Qualifier("commandController")
-  Observer commandController;
   
   @PostConstruct
   public void initializeServer() {
     System.out.println("RCam Coordinator - The coordinator will accept client connections.");
     
-    serverThread.injectObserver(commandController);
-    serverThread.injectObserver(serverThread);
+    //serverThread.injectObserver(commandController);
+    //serverThread.injectObserver(serverThread);
     
-    serverThread.addObserver(commandController);
+    //serverThread.addObserver(commandController);
     
     serverThread.start();
   }
   
   public void send(ACommand newCommand) {
     synchronized(newCommand) {
-      serverThread.send(newCommand);
+      try {
+        serverThread.send(newCommand);
+      } catch (IOException e) {
+        System.out.println("Server-  sending the new command failed");
+      }
     }
   }
   

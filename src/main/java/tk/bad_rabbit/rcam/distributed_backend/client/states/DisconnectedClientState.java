@@ -10,7 +10,7 @@ public class DisconnectedClientState extends AClientState {
 
   public void doCommandAction(ACommand command) {
     System.out.println("RCam Coordinator - DisconnectedClientState - will notify Command("+command.getCommandName()+"["+command.getAckNumber()+"])");
-    command.setState(new ErrorCommandState());
+    //command.setState(new ErrorCommandState());
   }
 
 }

@@ -1,16 +1,21 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.states;
 
-import java.util.Observer;
+import java.util.Observable;
+import java.util.concurrent.Future;
 
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ANetworkResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ARunResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ICommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ResultCommandResponseAction;
+import tk.bad_rabbit.rcam.spring.commands.CommandController;
 
 
 public class ReceivedCommandState extends ACommandState {
   
-  public void doRelatedCommandAction(Observer actionObserver, String server, ACommand actionSubject) {
+  public Future<Integer> doRelatedCommandAction(CommandController actionObserver, String server, ACommand actionSubject) {
     
     // feels like there's a better way to handle these two commands.
     if(actionSubject.getCommandName().equals("Ack")) {
@@ -21,40 +26,45 @@ public class ReceivedCommandState extends ACommandState {
     }
     
     
-    getRelatedCommandResponseAction().doStuff(actionObserver, server, actionSubject);
+    return getRelatedCommandResponseAction().doRelatedAction(actionObserver, server, actionSubject);
   }
   
-  ICommandResponseAction networkResponseAction;
-  ICommandResponseAction relatedCommandAction;
+  ANetworkResponseAction networkResponseAction;
+  ACommandResponseAction relatedCommandAction;
   
   
   
   
   
-  public ICommandResponseAction getNetworkResponseAction() {
+  public ANetworkResponseAction getNetworkResponseAction() {
     return networkResponseAction;
   }
   
-  public void setNetworkResponseAction(ICommandResponseAction newNetworkResponseAction) {
+  public void setNetworkResponseAction(ANetworkResponseAction newNetworkResponseAction) {
     this.networkResponseAction = newNetworkResponseAction;
   }
   
   
-  public void setRelatedCommandResponseAction(ICommandResponseAction newRelatedCommandResponseAction) {
+  public void setRelatedCommandResponseAction(ACommandResponseAction newRelatedCommandResponseAction) {
     this.relatedCommandAction = newRelatedCommandResponseAction;
   }
   
   
-  public ICommandResponseAction getRelatedCommandResponseAction() {
+  public ACommandResponseAction getRelatedCommandResponseAction() {
     return relatedCommandAction;
   }
 
-  ICommandResponseAction runCommandAction;
-  public ICommandResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
-  public void setRunCommandResponseAction(ICommandResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
+  ARunResponseAction runCommandAction;
+  public ARunResponseAction getRunCommandResponseAction() { return this.runCommandAction; }
+  public void setRunCommandResponseAction(ARunResponseAction newRunCommandAction) { this.runCommandAction = newRunCommandAction; }
 
-  public ICommandState getNextState() {
+  public ACommandState getNextState() {
     return new DoneState();
   }
+  
+  public void update(Observable observedAction, Object actionClass) {
+    System.out.println(this.getClass().getSimpleName() + " - Observed a change in " + observedAction.getClass().getSimpleName() + " it is " + actionClass);
+  }
+
   
 }

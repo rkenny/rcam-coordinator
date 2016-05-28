@@ -5,19 +5,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.action.ActionHandler;
+import tk.bad_rabbit.rcam.distributed_backend.command.action.ICommandAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.AckCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.DefaultCommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.IResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ReductionCompleteCommandResponseAction;
 import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ResultCommandResponseAction;
 
@@ -29,14 +30,14 @@ public class ConfigurationProvider implements IConfigurationProvider {
   Map<String, JSONObject> commandConfigurations;
 
   JSONObject serverVariables;
-  Map<String, ACommandResponseAction> commandResponseActions;
+  Map<String, IResponseAction> commandResponseActions;
   
   
   public ConfigurationProvider() {
     readClientsConfiguration();
     
     serverVariables = new JSONObject();
-    commandResponseActions = new HashMap<String, ACommandResponseAction>();
+    commandResponseActions = new HashMap<String, IResponseAction>();
     readServerConfiguration();
     readCommandConfigurations();
     
@@ -71,10 +72,10 @@ public class ConfigurationProvider implements IConfigurationProvider {
     reductionCompleteVars.put("command");
     reductionCompleteCommand.put("clientVars", reductionCompleteVars);
     reductionCompleteCommand.put("commandVars", new JSONObject("{ignored: true}"));
-    addSystemCommand("ReductionComplete", reductionCompleteCommand, new ReductionCompleteCommandResponseAction());
+    // addSystemCommand("ReductionComplete", reductionCompleteCommand, new ReductionCompleteCommandResponseAction());
   }
   
-  private void addSystemCommand(String commandType, JSONObject commandConfiguration, ACommandResponseAction commandResponseAction) {
+  private void addSystemCommand(String commandType, JSONObject commandConfiguration, IResponseAction commandResponseAction) {
     commandConfigurations.put(commandType, commandConfiguration);
     commandResponseActions.put(commandType, commandResponseAction); // This isn't used anymore?
   }
@@ -159,15 +160,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
     }
   }
   
-  //public String getHostname() {
-  //  return "localhost";
-  //}
-
-//
-//  public String getBaseUrl() {
-//    return "/";
-//  }
-  
   
   public Iterator<Map.Entry<String, Integer>> getBackendMapIterator() {
     return backendInfo.entrySet().iterator();
@@ -184,10 +176,6 @@ public class ConfigurationProvider implements IConfigurationProvider {
   public void setServerVariable(String key, Object value) {
     this.serverVariables.put(key, value);
   }
-  
-  //public int getServerPort() {
-  //  return new Integer(serverVariables.getInt("port")); //Integer.parseInt(serverVariables.getInt("port"));
-  //}
 
   public Map<String, JSONObject> getCommandConfigurations() {
     return commandConfigurations;
@@ -197,21 +185,37 @@ public class ConfigurationProvider implements IConfigurationProvider {
     return "config/commands";
   }
   
-  public JSONObject getCommandConfiguration(String commandType) {
-    return this.commandConfigurations.get(commandType);
-  }
-
-  //public List<String> getBackendList() {
-  //  List<String> backendList = new ArrayList<String>();
-  //  for(String server : backendInfo.keySet()) {
-  //    backendList.add(server + ":" + backendInfo.get(server));
-   // }
-        
-   // return backendList;
+  //public JSONObject getCommandConfiguration(String commandType) {
+  //  return this.commandConfigurations.get(commandType);
   //}
 
-  public ACommandResponseAction getCommandResponseAction(String commandType) {
+  public JSONObject getCommandConfiguration(String commandName) {
+    JSONObject commandConfiguration;
+    StringBuilder commandArgs = new StringBuilder();
+    File commandConfigDirectory = new File("config/commands/"+commandName);
+    if(commandConfigDirectory.isDirectory()) {
+      File commandConfigFile = new File(commandConfigDirectory, "command");
+        if(commandConfigFile.isFile()) {
+          BufferedReader reader;
+          try {
+            reader = new BufferedReader(new FileReader(commandConfigFile));
+            String configFileLine;
+            while((configFileLine = reader.readLine()) != null) {
+              commandArgs.append(configFileLine);
+            }
+            reader.close();
+          } catch (FileNotFoundException e) {
+            e.printStackTrace();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      }   
+    return new JSONObject(commandArgs.toString());
+  }
+  
+  public IResponseAction getCommandResponseAction(String commandType) {
     return commandResponseActions.get(commandType);
   }
-
+   
 }
