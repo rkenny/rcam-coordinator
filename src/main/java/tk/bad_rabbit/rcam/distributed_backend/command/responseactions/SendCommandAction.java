@@ -1,23 +1,26 @@
 package tk.bad_rabbit.rcam.distributed_backend.command.responseactions;
 
-import java.util.Observer;
+import java.io.IOException;
+import java.util.concurrent.Future;
 
 import tk.bad_rabbit.rcam.coordinator.server.ServerThread;
 import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
-import tk.bad_rabbit.rcam.distributed_backend.command.states.CommandSentState;
 
-public class SendCommandAction extends ACommandResponseAction {
+public class SendCommandAction { // extends ANetworkResponseAction {
 
-  public void nextState(String server, ACommand command) {
+  //public void nextState(String server, ACommand command) {
     //command.setState(server, new CommandSentState());
-    command.nextState(server);
-  }
+  //  command.nextState(server);
+  //}
 
-  @Override
-  public void doStuff(Observer actionObject, String server, ACommand actionSubject) {
-    ((ServerThread) actionObject).send(server, actionSubject);
-    //actionSubject.deleteObserver(actionObject);
-    nextState(server, actionSubject);
+  public Future<Integer> doNetworkAction(ServerThread actionObject, String server, ACommand actionSubject) {
+    try {
+      ((ServerThread) actionObject).send(server, actionSubject);
+      return null;
+    } catch(IOException e) {
+      System.out.println("Sending the command failed.");
+    }
+    return null;
   }
 
 }

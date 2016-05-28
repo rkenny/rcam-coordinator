@@ -1,13 +1,12 @@
 package tk.bad_rabbit.rcam.distributed_backend.configurationprovider;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
-import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.ACommandResponseAction;
+import tk.bad_rabbit.rcam.distributed_backend.command.responseactions.IResponseAction;
 
 public interface IConfigurationProvider {
   // This is the coordinator's configuration provider
@@ -29,5 +28,5 @@ public interface IConfigurationProvider {
   public void setServerVariable(String key, Object value);
   //public List<String> getBackendList();
 
-  ACommandResponseAction getCommandResponseAction(String commandType);
+  IResponseAction getCommandResponseAction(String commandType);
 }

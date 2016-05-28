@@ -1,6 +1,7 @@
 package tk.bad_rabbit.rcam.app;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 import javax.servlet.ServletRegistration;
 
@@ -31,6 +32,7 @@ public class Coordinator {
     waitForExitSignal();
     
     httpServer.shutdownNow();
+    System.exit(0);
   }
   
   
@@ -73,9 +75,8 @@ public class Coordinator {
   
   private static void waitForExitSignal() {
     System.out.println("Waiting for exit signal");
-    boolean loop = true;
-    do {
-    } while(loop == true);
+    Scanner scanner = new Scanner(System.in);
+    scanner.nextLine();
   }
   
 }

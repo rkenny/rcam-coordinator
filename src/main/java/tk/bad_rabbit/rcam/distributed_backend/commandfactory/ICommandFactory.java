@@ -8,10 +8,10 @@ import tk.bad_rabbit.rcam.distributed_backend.command.ACommand;
 
 public interface ICommandFactory {
   ACommand createCommand(CharBuffer commandBuffer);
-  ACommand createCommand(CharBuffer commandBuffer, String server);
-  ACommand createCommand(String command, JSONObject clientVariables);
+  //ACommand createCommand(CharBuffer commandBuffer, String server);
+  ACommand createCommand(String command, JSONObject details);
   
-  ACommand createAckCommand(ACommand incomingCommand);
-  ACommand createCancelCommand(ACommand command);
-  ACommand createReductionCompleteCommand(ACommand command);
+  //ACommand createAckCommand(ACommand incomingCommand);
+  //ACommand createCancelCommand(ACommand command);
+  //ACommand createReductionCompleteCommand(ACommand command);
 }

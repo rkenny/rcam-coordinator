@@ -16,6 +16,9 @@ public class Client extends Observable {
   public Client(String address, SocketChannel socketChannel) {
     this.address = address;
     this.socketChannel = socketChannel;
+    
+  //  System.out.println("Client - You should never see this.");
+    
   }
   
   public String getAddress() {
